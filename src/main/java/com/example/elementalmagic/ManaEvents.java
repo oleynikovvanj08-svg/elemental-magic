@@ -44,9 +44,9 @@ public final class ManaEvents {
                 return item instanceof SpellbookItem || item instanceof StaffItem;
     }
 
-        private static Holder<MobEffect> setBonus(Element e) {
+            private static Holder<MobEffect> setBonus(Element e) {
         return switch (e) {
-                        case LIGHTNING -> MobEffects.MOVEMENT_SPEED;
+            case LIGHTNING -> MobEffects.MOVEMENT_SPEED;
             case LIGHT -> MobEffects.NIGHT_VISION;
             case DARKNESS -> MobEffects.DAMAGE_BOOST;
             case WATER -> MobEffects.WATER_BREATHING;
@@ -61,6 +61,10 @@ public final class ManaEvents {
             case STARS -> MobEffects.SLOW_FALLING;
             case DARK_NATURE -> MobEffects.DAMAGE_BOOST;
             case SHADOW -> MobEffects.INVISIBILITY;
+        };
+    }
+        };
+    }
         };
     }
 
