@@ -1,0 +1,26 @@
+modLoader = "javafml"
+loaderVersion = "[2,)"
+license = "MIT"
+
+[[mods]]
+    modId = "elementalmagic"
+    version = "1.0.0"
+    displayName = "Elemental Magic"
+    description = '''
+Мод добавляет магическую систему с 7 стихиями,
+140 заклинаниями, гримуарами, посохами, бронёй и аксессуарами.
+'''
+
+[[dependencies.elementalmagic]]
+    modId = "neoforge"
+    type = "required"
+    versionRange = "[21.1,)"
+    ordering = "NONE"
+    side = "BOTH"
+
+[[dependencies.elementalmagic]]
+    modId = "minecraft"
+    type = "required"
+    versionRange = "[1.21.1,1.22)"
+    ordering = "NONE"
+    side = "BOTH"
