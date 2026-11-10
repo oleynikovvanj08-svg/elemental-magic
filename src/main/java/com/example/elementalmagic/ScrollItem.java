@@ -40,7 +40,7 @@ public class ScrollItem extends Item {
         return size * tier / TIERS;
     }
 
-    /** Сколько уровней опыта стоит запись в книгу. */
+    /** Сколько уровней опыта стоит запись. */
     public int xpCost() {
         return tier * 2;
     }
