@@ -50,16 +50,16 @@ public final class ModRegistry {
     public static final List<ArmorItem.Type> ARMOR_TYPES = List.of(
             ArmorItem.Type.HELMET, ArmorItem.Type.CHESTPLATE, ArmorItem.Type.LEGGINGS, ArmorItem.Type.BOOTS);
 
-    // ===== Мана игрока (сохраняется, не теряется после смерти) =====
+    // ===== Мана игрока =====
     public static final Supplier<AttachmentType<Integer>> MANA = ATTACHMENTS.register("mana",
             () -> AttachmentType.builder(() -> Mana.BASE_MAX).serialize(Codec.INT).copyOnDeath().build());
 
-    // ===== Номер выбранного заклинания в гримуаре =====
+    // ===== Номер выбранного заклинания =====
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> SPELL_INDEX =
             COMPONENTS.register("spell_index", () -> DataComponentType.<Integer>builder()
                     .persistent(Codec.INT).networkSynchronized(ByteBufCodecs.VAR_INT).build());
 
-    // ===== Номера заклинаний, записанных в гримуар =====
+    // ===== Записанные в книгу заклинания =====
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<List<Integer>>> LEARNED_SPELLS =
             COMPONENTS.register("learned_spells", () -> DataComponentType.<List<Integer>>builder()
                     .persistent(Codec.INT.listOf())
@@ -87,19 +87,16 @@ public final class ModRegistry {
 
     static {
         for (Element e : Element.values()) {
-            // Гримуар
             BOOKS.put(e, ITEMS.register(e.id + "_spellbook",
                     () -> new SpellbookItem(e, new Item.Properties().stacksTo(1)
                             .rarity(e.bossOnly ? Rarity.EPIC : Rarity.RARE))));
 
-            // Материал брони
             ARMOR_MATS.put(e, ARMOR_MATERIALS.register(e.id, () -> new ArmorMaterial(
                     defense(e), 20, SoundEvents.ARMOR_EQUIP_DIAMOND, () -> Ingredient.EMPTY,
                     List.of(new ArmorMaterial.Layer(ResourceLocation.fromNamespaceAndPath(MagicMod.MODID, e.id))),
                     e == Element.EARTH ? 3f : 2f,
                     e == Element.EARTH ? 0.1f : 0f)));
 
-            // Броня
             Map<ArmorItem.Type, DeferredItem<ElementalArmorItem>> set = new EnumMap<>(ArmorItem.Type.class);
             for (ArmorItem.Type type : ARMOR_TYPES) {
                 set.put(type, ITEMS.register(e.id + "_" + type.getName(),
@@ -108,13 +105,11 @@ public final class ModRegistry {
             }
             ARMOR.put(e, set);
 
-            // Посох
             STAVES.put(e, ITEMS.register(e.id + "_staff",
                     () -> new StaffItem(e, new Item.Properties()
                             .attributes(SwordItem.createAttributes(Tiers.DIAMOND, 3, -2.4f))
                             .rarity(Rarity.RARE))));
 
-            // Аксессуары
             AMULETS.put(e, ITEMS.register(e.id + "_amulet",
                     () -> new AccessoryItem(e, AccessoryItem.Kind.AMULET,
                             new Item.Properties().stacksTo(1).rarity(Rarity.EPIC))));
@@ -122,7 +117,6 @@ public final class ModRegistry {
                     () -> new AccessoryItem(e, AccessoryItem.Kind.RING,
                             new Item.Properties().stacksTo(1).rarity(Rarity.EPIC))));
 
-            // Свитки 5 уровней
             List<DeferredItem<ScrollItem>> scrolls = new ArrayList<>();
             for (int t = 1; t <= ScrollItem.TIERS; t++) {
                 final int tier = t;
@@ -134,7 +128,6 @@ public final class ModRegistry {
         }
     }
 
-    /** Защита брони: у Земли самая крепкая, у Тьмы и Воздуха самая лёгкая. */
     private static Map<ArmorItem.Type, Integer> defense(Element e) {
         int helmet, chest, legs, boots;
         switch (e) {
@@ -151,7 +144,7 @@ public final class ModRegistry {
         return map;
     }
 
-    /** Гримуар, в который записаны все заклинания школы (для творческой вкладки). */
+    /** Книга со всеми заклинаниями школы (для творческой вкладки). */
     public static ItemStack fullBook(Element e) {
         ItemStack stack = new ItemStack(BOOKS.get(e).get());
         int size = SpellbookItem.allSpells(e).size();
@@ -161,7 +154,6 @@ public final class ModRegistry {
         return stack;
     }
 
-    // ===== Вкладка в творческом режиме =====
     public static final Supplier<CreativeModeTab> TAB = TABS.register("main", () -> CreativeModeTab.builder()
             .title(Component.translatableWithFallback("itemGroup.elementalmagic", "Стихийная магия"))
             .icon(() -> new ItemStack(BOOKS.get(Element.FIRE).get()))
