@@ -16,6 +16,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class SpellbookItem extends Item {
@@ -26,8 +27,25 @@ public class SpellbookItem extends Item {
         this.element = element;
     }
 
-    private List<Spell> spells() {
-        return Spells.byElement(element);
+    /** Все заклинания школы. Если у школы их ещё нет, вернёт пустой список. */
+    public static List<Spell> allSpells(Element element) {
+        List<Spell> list = Spells.byElement(element);
+        return list == null ? List.of() : list;
+    }
+
+    /** Номера записанных заклинаний. Новая книга знает только первое заклинание школы. */
+    public static List<Integer> learned(ItemStack stack) {
+        return stack.getOrDefault(ModRegistry.LEARNED_SPELLS.get(), List.of(0));
+    }
+
+    /** Записанные в эту книгу заклинания по порядку. */
+    private List<Spell> spells(ItemStack stack) {
+        List<Spell> all = allSpells(element);
+        List<Spell> out = new ArrayList<>();
+        for (int i : learned(stack)) {
+            if (i >= 0 && i < all.size()) out.add(all.get(i));
+        }
+        return out;
     }
 
     private int index(ItemStack stack, int size) {
@@ -37,8 +55,15 @@ public class SpellbookItem extends Item {
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
-        List<Spell> list = spells();
-        if (list.isEmpty()) return InteractionResultHolder.pass(stack);
+        List<Spell> list = spells(stack);
+        if (list.isEmpty()) {
+            if (!level.isClientSide) {
+                player.displayClientMessage(Component.translatableWithFallback("msg.elementalmagic.empty_book",
+                        "В книге нет заклинаний. Запиши их со свитков на магическом столе")
+                        .withStyle(ChatFormatting.GRAY), true);
+            }
+            return InteractionResultHolder.pass(stack);
+        }
         int idx = index(stack, list.size());
 
         // Shift + ПКМ: следующее заклинание
@@ -80,15 +105,16 @@ public class SpellbookItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext ctx, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.elementalmagic.element", element.displayName()));
-        List<Spell> list = spells();
+        List<Spell> list = spells(stack);
+        int total = allSpells(element).size();
+        tooltip.add(Component.translatableWithFallback("tooltip.elementalmagic.learned",
+                "Записано заклинаний: %s из %s", list.size(), total).withStyle(ChatFormatting.GRAY));
         if (list.isEmpty()) return;
         Spell s = list.get(index(stack, list.size()));
         tooltip.add(Component.translatable("tooltip.elementalmagic.selected", s.name()));
         tooltip.add(Component.literal("  ").append(s.school().displayName())
                 .append(Component.literal(" • " + s.manaCost() + " маны • "
                         + (s.cooldown() / 20.0) + " с").withStyle(ChatFormatting.DARK_GRAY)));
-        tooltip.add(Component.translatable("tooltip.elementalmagic.count", list.size())
-                .withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.translatable("tooltip.elementalmagic.hint").withStyle(ChatFormatting.GRAY));
     }
 
