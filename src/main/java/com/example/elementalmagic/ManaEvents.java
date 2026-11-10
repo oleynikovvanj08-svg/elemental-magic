@@ -18,24 +18,24 @@ public final class ManaEvents {
     @SubscribeEvent
     public static void onPlayerTick(PlayerTickEvent.Post event) {
         Player p = event.getEntity();
-        if (p.level().isClientSide  p.tickCount % 10 != 0) return;
+                if (p.level().isClientSide || p.tickCount % 10 != 0) return;
 
-         Восстановление маны
+                 // Восстановление маны
         int mana = Mana.get(p);
         int max = Mana.max(p);
-        if (mana  max) Mana.set(p, mana + Mana.regen(p));
+                if (mana < max) Mana.set(p, mana + Mana.regen(p));
 
-         Бонус полного комплекта брони
-        for (Element e  Element.values()) {
+                 // Бонус полного комплекта брони
+                for (Element e : Element.values()) {
             if (Mana.armorPieces(p, e) == 4) {
                 p.addEffect(new MobEffectInstance(setBonus(e), 300, 0, true, false, true));
             }
         }
 
-         Показ маны, когда в руке гримуар или посох
-        boolean holding = isMagicItem(p.getMainHandItem().getItem())  isMagicItem(p.getOffhandItem().getItem());
+                 // Показ маны, когда в руке гримуар или посох
+                        boolean holding = isMagicItem(p.getMainHandItem().getItem()) || isMagicItem(p.getOffhandItem().getItem());
         if (holding) {
-            p.displayClientMessage(Component.literal(✦ Мана  + Mana.get(p) +  + max)
+                        p.displayClientMessage(Component.literal("✦ Мана: " + Mana.get(p) + " / " + max)
                     .withStyle(ChatFormatting.AQUA), true);
         }
     }
@@ -46,13 +46,13 @@ public final class ManaEvents {
 
     private static HolderMobEffect setBonus(Element e) {
         return switch (e) {
-            case LIGHTNING - MobEffects.MOVEMENT_SPEED;
-            case LIGHT - MobEffects.NIGHT_VISION;
-            case DARKNESS - MobEffects.DAMAGE_BOOST;
-            case WATER - MobEffects.WATER_BREATHING;
-            case EARTH - MobEffects.DAMAGE_RESISTANCE;
-            case AIR - MobEffects.JUMP;
-            case FIRE - MobEffects.FIRE_RESISTANCE;
+                        case LIGHTNING -> MobEffects.MOVEMENT_SPEED;
+            case LIGHT -> MobEffects.NIGHT_VISION;
+            case DARKNESS -> MobEffects.DAMAGE_BOOST;
+            case WATER -> MobEffects.WATER_BREATHING;
+            case EARTH -> MobEffects.DAMAGE_RESISTANCE;
+            case AIR -> MobEffects.JUMP;
+            case FIRE -> MobEffects.FIRE_RESISTANCE;
         };
     }
 
