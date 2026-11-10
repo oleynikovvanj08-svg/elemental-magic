@@ -53,6 +53,14 @@ public final class ManaEvents {
             case EARTH -> MobEffects.DAMAGE_RESISTANCE;
             case AIR -> MobEffects.JUMP;
             case FIRE -> MobEffects.FIRE_RESISTANCE;
+            case NATURE -> MobEffects.LUCK;
+            case ASH -> MobEffects.FIRE_RESISTANCE;
+            case EXPLOSION -> MobEffects.DAMAGE_RESISTANCE;
+            case ELEMENTAL -> MobEffects.DAMAGE_BOOST;
+            case TIME -> MobEffects.DIG_SPEED;
+            case STARS -> MobEffects.SLOW_FALLING;
+            case DARK_NATURE -> MobEffects.DAMAGE_BOOST;
+            case SHADOW -> MobEffects.INVISIBILITY;
         };
     }
 
