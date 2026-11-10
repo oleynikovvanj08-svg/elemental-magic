@@ -41,10 +41,10 @@ public final class ManaEvents {
     }
 
     private static boolean isMagicItem(Object item) {
-        return item instanceof SpellbookItem  item instanceof StaffItem;
+                return item instanceof SpellbookItem || item instanceof StaffItem;
     }
 
-    private static HolderMobEffect setBonus(Element e) {
+        private static Holder<MobEffect> setBonus(Element e) {
         return switch (e) {
                         case LIGHTNING -> MobEffects.MOVEMENT_SPEED;
             case LIGHT -> MobEffects.NIGHT_VISION;
