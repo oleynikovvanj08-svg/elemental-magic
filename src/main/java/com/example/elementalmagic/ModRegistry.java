@@ -1,0 +1,142 @@
+package com.example.elementalmagic;
+
+import com.example.elementalmagic.magic.Element;
+import com.mojang.serialization.Codec;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ArmorMaterial;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.SwordItem;
+import net.minecraft.world.item.Tiers;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.attachment.AttachmentType;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredItem;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
+
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
+
+public final class ModRegistry {
+    private static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MagicMod.MODID);
+    private static final DeferredRegister<ArmorMaterial> ARMOR_MATERIALS =
+            DeferredRegister.create(Registries.ARMOR_MATERIAL, MagicMod.MODID);
+    private static final DeferredRegister<DataComponentType<?>> COMPONENTS =
+            DeferredRegister.create(Registries.DATA_COMPONENT_TYPE, MagicMod.MODID);
+    private static final DeferredRegister<AttachmentType<?>> ATTACHMENTS =
+            DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, MagicMod.MODID);
+    private static final DeferredRegister<CreativeModeTab> TABS =
+            DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MagicMod.MODID);
+
+    public static final List<ArmorItem.Type> ARMOR_TYPES = List.of(
+            ArmorItem.Type.HELMET, ArmorItem.Type.CHESTPLATE, ArmorItem.Type.LEGGINGS, ArmorItem.Type.BOOTS);
+
+    // ===== Мана игрока (сохраняется, не теряется после смерти) =====
+    public static final Supplier<AttachmentType<Integer>> MANA = ATTACHMENTS.register("mana",
+            () -> AttachmentType.builder(() -> Mana.BASE_MAX).serialize(Codec.INT).copyOnDeath().build());
+
+    // ===== Номер выбранного заклинания в гримуаре =====
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> SPELL_INDEX =
+            COMPONENTS.register("spell_index", () -> DataComponentType.<Integer>builder()
+                    .persistent(Codec.INT).networkSynchronized(ByteBufCodecs.VAR_INT).build());
+
+    // ===== Предметы =====
+    public static final Map<Element, DeferredItem<SpellbookItem>> BOOKS = new EnumMap<>(Element.class);
+    public static final Map<Element, DeferredHolder<ArmorMaterial, ArmorMaterial>> ARMOR_MATS = new EnumMap<>(Element.class);
+    public static final Map<Element, Map<ArmorItem.Type, DeferredItem<ElementalArmorItem>>> ARMOR = new EnumMap<>(Element.class);
+    public static final Map<Element, DeferredItem<StaffItem>> STAVES = new EnumMap<>(Element.class);
+    public static final Map<Element, DeferredItem<AccessoryItem>> AMULETS = new EnumMap<>(Element.class);
+    public static final Map<Element, DeferredItem<AccessoryItem>> RINGS = new EnumMap<>(Element.class);
+
+    static {
+        for (Element e : Element.values()) {
+            // Гримуар
+            BOOKS.put(e, ITEMS.register(e.id + "_spellbook",
+                    () -> new SpellbookItem(e, new Item.Properties().stacksTo(1).rarity(Rarity.RARE))));
+
+            // Материал брони
+            ARMOR_MATS.put(e, ARMOR_MATERIALS.register(e.id, () -> new ArmorMaterial(
+                    defense(e), 20, SoundEvents.ARMOR_EQUIP_DIAMOND, () -> Ingredient.EMPTY,
+                    List.of(new ArmorMaterial.Layer(ResourceLocation.fromNamespaceAndPath(MagicMod.MODID, e.id))),
+                    e == Element.EARTH ? 3f : 2f,
+                    e == Element.EARTH ? 0.1f : 0f)));
+
+            // Броня
+            Map<ArmorItem.Type, DeferredItem<ElementalArmorItem>> set = new EnumMap<>(ArmorItem.Type.class);
+            for (ArmorItem.Type type : ARMOR_TYPES) {
+                set.put(type, ITEMS.register(e.id + "_" + type.getName(),
+                        () -> new ElementalArmorItem(e, ARMOR_MATS.get(e), type, new Item.Properties()
+                                .durability(type.getDurability(33)).rarity(Rarity.RARE))));
+            }
+            ARMOR.put(e, set);
+
+            // Посох
+            STAVES.put(e, ITEMS.register(e.id + "_staff",
+                    () -> new StaffItem(e, new Item.Properties()
+                            .attributes(SwordItem.createAttributes(Tiers.DIAMOND, 3, -2.4f))
+                            .rarity(Rarity.RARE))));
+
+            // Аксессуары
+            AMULETS.put(e, ITEMS.register(e.id + "_amulet",
+                    () -> new AccessoryItem(e, AccessoryItem.Kind.AMULET,
+                            new Item.Properties().stacksTo(1).rarity(Rarity.EPIC))));
+            RINGS.put(e, ITEMS.register(e.id + "_ring",
+                    () -> new AccessoryItem(e, AccessoryItem.Kind.RING,
+                            new Item.Properties().stacksTo(1).rarity(Rarity.EPIC))));
+        }
+    }
+
+    /** Защита брони: у Земли самая крепкая, у Тьмы и Воздуха самая лёгкая. */
+    private static Map<ArmorItem.Type, Integer> defense(Element e) {
+        int helmet, chest, legs, boots;
+        switch (e) {
+            case EARTH -> { helmet = 3; chest = 8; legs = 6; boots = 3; }
+            case DARKNESS, AIR -> { helmet = 2; chest = 6; legs = 5; boots = 2; }
+            default -> { helmet = 3; chest = 7; legs = 5; boots = 2; }
+        }
+        Map<ArmorItem.Type, Integer> map = new EnumMap<>(ArmorItem.Type.class);
+        map.put(ArmorItem.Type.HELMET, helmet);
+        map.put(ArmorItem.Type.CHESTPLATE, chest);
+        map.put(ArmorItem.Type.LEGGINGS, legs);
+        map.put(ArmorItem.Type.BOOTS, boots);
+        map.put(ArmorItem.Type.BODY, chest + 3);
+        return map;
+    }
+
+    // ===== Вкладка в творческом режиме =====
+    public static final Supplier<CreativeModeTab> TAB = TABS.register("main", () -> CreativeModeTab.builder()
+            .title(Component.translatable("itemGroup.elementalmagic"))
+            .icon(() -> new ItemStack(BOOKS.get(Element.FIRE).get()))
+            .displayItems((params, out) -> {
+                for (Element e : Element.values()) {
+                    out.accept(BOOKS.get(e).get());
+                    out.accept(STAVES.get(e).get());
+                    for (ArmorItem.Type type : ARMOR_TYPES) out.accept(ARMOR.get(e).get(type).get());
+                    out.accept(AMULETS.get(e).get());
+                    out.accept(RINGS.get(e).get());
+                }
+            })
+            .build());
+
+    public static void register(IEventBus bus) {
+        ITEMS.register(bus);
+        ARMOR_MATERIALS.register(bus);
+        COMPONENTS.register(bus);
+        ATTACHMENTS.register(bus);
+        TABS.register(bus);
+    }
+
+    private ModRegistry() {}
+}
