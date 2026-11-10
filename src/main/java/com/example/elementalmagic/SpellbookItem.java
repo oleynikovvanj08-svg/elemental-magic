@@ -27,18 +27,17 @@ public class SpellbookItem extends Item {
         this.element = element;
     }
 
-    /** Все заклинания школы. Если у школы их ещё нет, вернёт пустой список. */
+    /** Все заклинания школы. Если их ещё нет, пустой список. */
     public static List<Spell> allSpells(Element element) {
         List<Spell> list = Spells.byElement(element);
         return list == null ? List.of() : list;
     }
 
-    /** Номера записанных заклинаний. Новая книга знает только первое заклинание школы. */
+    /** Номера записанных заклинаний. Новая книга знает только первое. */
     public static List<Integer> learned(ItemStack stack) {
         return stack.getOrDefault(ModRegistry.LEARNED_SPELLS.get(), List.of(0));
     }
 
-    /** Записанные в эту книгу заклинания по порядку. */
     private List<Spell> spells(ItemStack stack) {
         List<Spell> all = allSpells(element);
         List<Spell> out = new ArrayList<>();
