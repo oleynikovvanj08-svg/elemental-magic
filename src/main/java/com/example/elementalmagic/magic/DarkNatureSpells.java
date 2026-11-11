@@ -73,8 +73,8 @@ final class DarkNatureSpells {
             if (t == null) return false;
             hurt(p, t, 7);
             effect(t, MobEffects.POISON, 100, 0);
-            line(level, p.getEyePosition(), mid(t), ParticleTypes.SCULK_CHARGE);
-            sound(level, t, SoundEvents.SWEET_BERRY_BUSH_HURT_PLAYER, 1.0f);
+            line(level, p.getEyePosition(), mid(t), ParticleTypes.CRIMSON_SPORE);
+            sound(level, t, SoundEvents.SWEET_BERRY_BUSH_BREAK, 1.0f);
             return true;
         });
 
@@ -83,7 +83,7 @@ final class DarkNatureSpells {
             for (LivingEntity e : enemies(level, p, 3)) {
                 hurt(p, e, 5);
             }
-            ring(level, p.position(), 2, ParticleTypes.SCULK_CHARGE);
+            ring(level, p.position(), 2, ParticleTypes.CRIMSON_SPORE);
             sound(level, p, SoundEvents.SWEET_BERRY_BUSH_PLACE, 0.8f);
             return true;
         });
@@ -94,7 +94,7 @@ final class DarkNatureSpells {
             hurt(p, t, 10);
             p.heal(6);
             effect(t, MobEffects.POISON, 120, 1);
-            line(level, mid(t), mid(p), ParticleTypes.SCULK_CHARGE);
+            line(level, mid(t), mid(p), ParticleTypes.CRIMSON_SPORE);
             sound(level, p, SoundEvents.WEEPING_VINES_BREAK, 0.9f);
             return true;
         });
@@ -105,8 +105,8 @@ final class DarkNatureSpells {
                 effect(e, MobEffects.POISON, 140, 1);
                 effect(e, MobEffects.MOVEMENT_SLOWDOWN, 140, 1);
             }
-            line(level, p.getEyePosition(), beamEnd(p, 15), ParticleTypes.SCULK_CHARGE);
-            sound(level, p, SoundEvents.SWEET_BERRY_BUSH_HURT_PLAYER, 0.7f);
+            line(level, p.getEyePosition(), beamEnd(p, 15), ParticleTypes.CRIMSON_SPORE);
+            sound(level, p, SoundEvents.SWEET_BERRY_BUSH_BREAK, 0.7f);
             return true;
         });
 
@@ -117,7 +117,7 @@ final class DarkNatureSpells {
                 effect(e, MobEffects.POISON, 300, 2);
                 effect(e, MobEffects.WEAKNESS, 300, 2);
             }
-            burst(level, mid(p), ParticleTypes.SCULK_CHARGE, 400, 14);
+            burst(level, mid(p), ParticleTypes.CRIMSON_SPORE, 400, 14);
             burst(level, mid(p), ParticleTypes.SCULK_SOUL, 400, 14);
             sound(level, p, SoundEvents.SCULK_SHRIEKER_SHRIEK, 0.5f);
             return true;
