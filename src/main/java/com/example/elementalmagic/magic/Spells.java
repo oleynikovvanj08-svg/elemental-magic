@@ -1,28 +1,65 @@
 package com.example.elementalmagic.magic;
 
-import java.util.ArrayList;
-import java.util.List;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 
-public final class Spells {
-    public static final List<Spell> ALL = new ArrayList<>();
+public enum School {
+    // Молния
+    STORM(Element.LIGHTNING, "storm"),
+    MAGNETISM(Element.LIGHTNING, "magnetism"),
+    // Свет
+    HOLY(Element.LIGHT, "holy"),
+    SOLAR(Element.LIGHT, "solar"),
+    // Тьма
+    SHADOW_DARK(Element.DARKNESS, "shadow_dark"),
+    NECROMANCY(Element.DARKNESS, "necromancy"),
+    // Вода
+    ICE_WATER(Element.WATER, "ice_water"),
+    TIDE(Element.WATER, "tide"),
+    // Земля
+    IRON(Element.EARTH, "iron"),
+    STONE(Element.EARTH, "stone"),
+    // Воздух
+    SOUND(Element.AIR, "sound"),
+    WIND(Element.AIR, "wind"),
+    // Огонь
+    LAVA(Element.FIRE, "lava"),
+    FLAME(Element.FIRE, "flame"),
+    // Природа
+    FLORA(Element.NATURE, "flora"),
+    BEAST(Element.NATURE, "beast"),
+    // Пепел
+    DECAY(Element.ASH, "decay"),
+    SMOKE(Element.ASH, "smoke"),
+    // Взрывная магия
+    DETONATION(Element.EXPLOSION, "detonation"),
+    SHOCKWAVE(Element.EXPLOSION, "shockwave"),
+    // Все стихии
+    FROST(Element.ELEMENTAL, "frost"),
+    FUSION(Element.ELEMENTAL, "fusion"),
+    // Время
+    ACCELERATION(Element.TIME, "acceleration"),
+    STASIS(Element.TIME, "stasis"),
+    // Звёзды
+    CONSTELLATION(Element.STARS, "constellation"),
+    COSMOS(Element.STARS, "cosmos"),
+    // Тёмная природа
+    ROT(Element.DARK_NATURE, "rot"),
+    THORN(Element.DARK_NATURE, "thorn"),
+    // Тени
+    STEALTH(Element.SHADOW, "stealth"),
+    BLADE(Element.SHADOW, "blade");
 
-    static {
-        LightningSpells.init();
-        LightSpells.init();
-        DarknessSpells.init();
-        WaterSpells.init();
-        EarthSpells.init();
-        AirSpells.init();
-        FireSpells.init();
+    public final Element element;
+    public final String id;
+
+    School(Element element, String id) {
+        this.element = element;
+        this.id = id;
     }
 
-    static void reg(String id, School school, int mana, int cooldownTicks, Spell.CastAction action) {
-        ALL.add(new Spell(id, school, mana, cooldownTicks, action));
+    public MutableComponent displayName() {
+        return Component.translatable("school.elementalmagic." + id)
+                .withStyle(s -> s.withColor(element.color));
     }
-
-    public static List<Spell> byElement(Element element) {
-        return ALL.stream().filter(s -> s.school().element == element).toList();
-    }
-
-    private Spells() {}
 }
