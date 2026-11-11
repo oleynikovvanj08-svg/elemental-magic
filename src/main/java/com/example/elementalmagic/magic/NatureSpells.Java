@@ -29,7 +29,7 @@ final class NatureSpells {
                 effect(e, MobEffects.POISON, 80, 0);
             }
             line(level, p.getEyePosition(), beamEnd(p, 12), ParticleTypes.SPORE_BLOSSOM_AIR);
-            sound(level, p, SoundEvents.SWEET_BERRY_BUSH_HURT_PLAYER, 0.9f);
+            sound(level, p, SoundEvents.SWEET_BERRY_BUSH_BREAK, 0.9f);
             return true;
         });
 
