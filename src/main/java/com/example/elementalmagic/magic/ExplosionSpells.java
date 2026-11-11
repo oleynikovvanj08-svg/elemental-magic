@@ -108,7 +108,7 @@ final class ExplosionSpells {
             return true;
         });
 
-        reg("震explosion_armor", SHOCKWAVE, 35, 300, (level, p) -> {
+        reg("explosion_armor", SHOCKWAVE, 35, 300, (level, p) -> {
             for (LivingEntity e : enemies(level, p, 4)) {
                 hurt(p, e, 6);
                 pushFrom(e, p.position(), 1.8, 0.6);
