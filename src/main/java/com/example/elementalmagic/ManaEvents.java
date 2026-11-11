@@ -63,6 +63,6 @@ public final class ManaEvents {
             case SHADOW -> MobEffects.INVISIBILITY;
         };
     }
-}
+
     private ManaEvents() {}
 }
