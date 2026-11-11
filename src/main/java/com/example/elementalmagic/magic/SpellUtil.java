@@ -187,5 +187,10 @@ final class SpellUtil {
         level.playSound(null, at.getX(), at.getY(), at.getZ(), s, SoundSource.PLAYERS, 1f, pitch);
     }
 
+    /** Для звуков, которые в 1.21 хранятся как Holder (например, GENERIC_EXPLODE). */
+    static void sound(ServerLevel level, Entity at, Holder<SoundEvent> s, float pitch) {
+        sound(level, at, s.value(), pitch);
+    }
+
     private SpellUtil() {}
 }
