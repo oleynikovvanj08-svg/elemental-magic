@@ -27,6 +27,17 @@
   "spell.elementalmagic.pack_instinct": "Инстинкт стаи",
   "spell.elementalmagic.primal_rage": "Первобытная ярость",
 
+  "spell.elementalmagic.vine_grasp.desc": "Лоза хватает цель на расстоянии до 20 блоков: урон и сильное замедление на 3 с.",
+  "spell.elementalmagic.thorn_lash.desc": "Плеть шипов бьёт по линии на 12 блоков: урон и отравление всем, кто на пути.",
+  "spell.elementalmagic.healing_bloom.desc": "Лечит тебя и союзников в радиусе 8 блоков на 3 сердца и снимает негативные эффекты.",
+  "spell.elementalmagic.root_prison.desc": "Корни сковывают цель: урон, очень сильное замедление и слабость на 7 с.",
+  "spell.elementalmagic.natures_wrath.desc": "Все враги в радиусе 12 блоков получают урон, отравление на 10 с и замедление.",
+  "spell.elementalmagic.wolfs_howl.desc": "Сила II и скорость II на 10 с. Враги в радиусе 10 блоков получают слабость.",
+  "spell.elementalmagic.bears_fury.desc": "Мощный удар по цели на расстоянии до 15 блоков с отбрасыванием.",
+  "spell.elementalmagic.eagle_dive.desc": "Рывок вперёд с медленным падением. Наносит урон всем существам рядом с тобой.",
+  "spell.elementalmagic.pack_instinct.desc": "Ты и союзники в радиусе 12 блоков получаете силу II, сопротивление и скорость на 20 с.",
+  "spell.elementalmagic.primal_rage.desc": "Сила III, скорость III и сопротивление II на 20 с, регенерация II на 10 с.",
+
   "spell.elementalmagic.ash_touch": "Пепельное касание",
   "spell.elementalmagic.smoldering_embers": "Тлеющие угли",
   "spell.elementalmagic.erosion": "Эрозия",
@@ -106,6 +117,7 @@
 
   "key.categories.elementalmagic": "Elemental Magic",
   "key.elementalmagic.prev_spell": "Предыдущее заклинание",
-  "key.elementalmagic.next_spell": "Следующее заклинание"
+  "key.elementalmagic.next_spell": "Следующее заклинание",
+  "key.elementalmagic.open_book": "Открыть гримуар",
   "msg.elementalmagic.on_cooldown": "%s перезаряжается (%s с)"
 }
