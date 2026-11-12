@@ -23,10 +23,18 @@ public class AccessoryItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext ctx, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable("tooltip.elementalmagic.element", element.displayName()));
-        String key = kind == Kind.AMULET ? "tooltip.elementalmagic.amulet" : "tooltip.elementalmagic.ring";
-        tooltip.add(Component.translatable(key).withStyle(ChatFormatting.GOLD));
-        tooltip.add(Component.translatable("tooltip.elementalmagic.in_inventory").withStyle(ChatFormatting.GRAY));
+        String slot = kind == Kind.AMULET ? "слот для амулетов" : "слот для колец";
+        tooltip.add(Component.translatableWithFallback("tooltip.elementalmagic.accessory_slot",
+                "Работает только в %s", slot).withStyle(ChatFormatting.GRAY));
+
+        int mana = kind == Kind.AMULET ? 50 : 15;
+        tooltip.add(Component.translatableWithFallback("tooltip.elementalmagic.accessory_mana",
+                "Максимум маны: +%s", mana).withStyle(ChatFormatting.AQUA));
+
+        tooltip.add(Component.translatableWithFallback("tooltip.elementalmagic.accessory_damage_own",
+                "Урон заклинаний стихии %s: +20%%", element.displayName()).withStyle(ChatFormatting.GREEN));
+        tooltip.add(Component.translatableWithFallback("tooltip.elementalmagic.accessory_damage_other",
+                "Урон остальных заклинаний: +10%%").withStyle(ChatFormatting.GRAY));
     }
 
     @Override
