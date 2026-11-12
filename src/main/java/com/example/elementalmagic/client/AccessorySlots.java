@@ -2,127 +2,102 @@ package com.example.elementalmagic.client;
 
 import com.example.elementalmagic.AccessoryItem;
 import com.example.elementalmagic.MagicMod;
+import com.example.elementalmagic.ModRegistry;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ClickType;
-import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ContainerScreenEvent;
 import net.neoforged.neoforge.client.event.ScreenEvent;
-import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
+import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Добавляет 4 слота в инвентарь игрока: 2 для амулетов (выше шлема) и 2 для колец (правее сапог).
- * Предметы работают, только если лежат в этих слотах.
- */
-@EventBusSubscriber(modid = MagicMod.MODID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
+@EventBusSubscriber(modid = MagicMod.MODID, value = Dist.CLIENT)
 public final class AccessorySlots {
-    /** Смещение амулетов: левее брони, выше шлема. */
     private static final int AMULET_X = -18, AMULET_Y = 8;
-    /** Смещение колец: правее брони, ниже сапог. */
     private static final int RING_X = 18, RING_Y = 62;
 
     private static final ResourceLocation SLOT =
             ResourceLocation.fromNamespaceAndPath(MagicMod.MODID, "textures/gui/accessory_slot.png");
 
-    /** Инвентарь с 4 дополнительными слотами: [36..39] амулеты, [40..41] кольца. */
-    private static ItemStack[] extraSlots = new ItemStack[4];
-
-    static {
-        for (int i = 0; i < extraSlots.length; i++) extraSlots[i] = ItemStack.EMPTY;
-    }
-
-    /** Возвращает предметы в двух слотах для амулетов. */
     public static Iterable<ItemStack> amulets(Player p) {
-        return List.of(get(p, 0), get(p, 1));
+        if (p == null) return List.of(ItemStack.EMPTY, ItemStack.EMPTY);
+        List<ItemStack> list = p.getData(ModRegistry.AMULET_SLOTS);
+        return list.isEmpty() ? List.of(ItemStack.EMPTY, ItemStack.EMPTY) : list;
     }
 
-    /** Возвращает предметы в двух слотах для колец. */
     public static Iterable<ItemStack> rings(Player p) {
-        return List.of(get(p, 2), get(p, 3));
+        if (p == null) return List.of(ItemStack.EMPTY, ItemStack.EMPTY);
+        List<ItemStack> list = p.getData(ModRegistry.RING_SLOTS);
+        return list.isEmpty() ? List.of(ItemStack.EMPTY, ItemStack.EMPTY) : list;
     }
 
-    private static ItemStack get(Player p, int slot) {
-        if (p.level().isClientSide) return extraSlots[slot];
-        // На сервере храним в последних 4 слотах инвентаря
-        Inventory inv = p.getInventory();
-        int i = inv.getContainerSize() - 4 + slot;
-        return i < inv.getContainerSize() ? inv.getItem(i) : ItemStack.EMPTY;
-    }
-
-    private static void set(Player p, int slot, ItemStack stack) {
-        if (p.level().isClientSide) {
-            extraSlots[slot] = stack;
+    private static void set(Player p, AccessoryItem.Kind kind, int slot, ItemStack stack) {
+        List<ItemStack> old = kind == AccessoryItem.Kind.AMULET
+                ? p.getData(ModRegistry.AMULET_SLOTS)
+                : p.getData(ModRegistry.RING_SLOTS);
+        List<ItemStack> updated = new ArrayList<>(old);
+        while (updated.size() <= slot) updated.add(ItemStack.EMPTY);
+        updated.set(slot, stack);
+        if (kind == AccessoryItem.Kind.AMULET) {
+            p.setData(ModRegistry.AMULET_SLOTS, List.copyOf(updated));
         } else {
-            Inventory inv = p.getInventory();
-            int i = inv.getContainerSize() - 4 + slot;
-            if (i < inv.getContainerSize()) inv.setItem(i, stack);
+            p.setData(ModRegistry.RING_SLOTS, List.copyOf(updated));
         }
     }
 
-    /** Синхронизация клиента с сервером каждый тик. */
-    @SubscribeEvent
-    public static void onPlayerTick(PlayerTickEvent.Post event) {
-        Player p = event.getEntity();
-        if (!p.level().isClientSide) return;
-        Inventory inv = p.getInventory();
-        for (int i = 0; i < 4; i++) {
-            int idx = inv.getContainerSize() - 4 + i;
-            if (idx < inv.getContainerSize()) extraSlots[i] = inv.getItem(idx);
-        }
-    }
-
-    /** Рисуем слоты и предметы в них. */
     @SubscribeEvent
     public static void onRenderInventory(ContainerScreenEvent.Render.Background event) {
         if (!(event.getContainerScreen() instanceof InventoryScreen screen)) return;
-        if (!(screen.getMenu() instanceof InventoryMenu)) return;
 
         GuiGraphics g = event.getGuiGraphics();
         int left = screen.getGuiLeft();
         int top = screen.getGuiTop();
+        Player player = Minecraft.getInstance().player;
+        if (player == null) return;
 
-        // Слоты для амулетов
-        RenderSystem.setShaderTexture(0, SLOT);
+        List<ItemStack> amulets = new ArrayList<>();
+        amulets(player).forEach(amulets::add);
         for (int i = 0; i < 2; i++) {
             int x = left + AMULET_X;
             int y = top + AMULET_Y + i * 18;
+            RenderSystem.setShaderTexture(0, SLOT);
             g.blit(SLOT, x, y, 0, 0, 18, 18, 18, 18);
-            ItemStack stack = extraSlots[i];
+            ItemStack stack = i < amulets.size() ? amulets.get(i) : ItemStack.EMPTY;
             if (!stack.isEmpty()) g.renderItem(stack, x + 1, y + 1);
         }
 
-        // Слоты для колец
+        List<ItemStack> rings = new ArrayList<>();
+        rings(player).forEach(rings::add);
         for (int i = 0; i < 2; i++) {
             int x = left + RING_X;
             int y = top + RING_Y + i * 18;
+            RenderSystem.setShaderTexture(0, SLOT);
             g.blit(SLOT, x, y, 0, 0, 18, 18, 18, 18);
-            ItemStack stack = extraSlots[2 + i];
+            ItemStack stack = i < rings.size() ? rings.get(i) : ItemStack.EMPTY;
             if (!stack.isEmpty()) g.renderItem(stack, x + 1, y + 1);
         }
     }
 
-    /** Обработка кликов: положить, взять, поменять местами. */
     @SubscribeEvent
     public static void onMouseClick(ScreenEvent.MouseButtonPressed.Pre event) {
         if (!(event.getScreen() instanceof InventoryScreen screen)) return;
-        if (!(screen.getMenu() instanceof InventoryMenu)) return;
 
         int left = screen.getGuiLeft();
         int top = screen.getGuiTop();
         int mouseX = (int) event.getMouseX();
         int mouseY = (int) event.getMouseY();
+
+        Player player = Minecraft.getInstance().player;
+        if (player == null) return;
 
         Integer slot = null;
         AccessoryItem.Kind kind = null;
@@ -141,7 +116,7 @@ public final class AccessorySlots {
                 int x = left + RING_X;
                 int y = top + RING_Y + i * 18;
                 if (mouseX >= x && mouseX < x + 18 && mouseY >= y && mouseY < y + 18) {
-                    slot = 2 + i;
+                    slot = i;
                     kind = AccessoryItem.Kind.RING;
                     break;
                 }
@@ -149,55 +124,60 @@ public final class AccessorySlots {
         }
         if (slot == null) return;
 
-        Player p = Minecraft.getInstance().player;
-        if (p == null) return;
-
         ItemStack cursor = screen.getMenu().getCarried();
-        ItemStack inSlot = extraSlots[slot];
+        List<ItemStack> current = kind == AccessoryItem.Kind.AMULET
+                ? new ArrayList<>(player.getData(ModRegistry.AMULET_SLOTS))
+                : new ArrayList<>(player.getData(ModRegistry.RING_SLOTS));
+        while (current.size() <= slot) current.add(ItemStack.EMPTY);
+        ItemStack inSlot = current.get(slot);
 
         if (!cursor.isEmpty() && !(cursor.getItem() instanceof AccessoryItem acc && acc.kind == kind)) {
-            p.displayClientMessage(Component.translatableWithFallback("msg.elementalmagic.wrong_accessory",
+            player.displayClientMessage(Component.translatableWithFallback("msg.elementalmagic.wrong_accessory",
                     "Этот предмет не подходит для этого слота").withStyle(net.minecraft.ChatFormatting.RED), true);
             event.setCanceled(true);
             return;
         }
 
-        // ЛКМ: положить/взять, ПКМ: взять один
         if (event.getButton() == 0) {
-            extraSlots[slot] = cursor;
+            set(player, kind, slot, cursor);
             screen.getMenu().setCarried(inSlot);
-            set(p, slot, cursor);
         } else if (event.getButton() == 1 && !inSlot.isEmpty()) {
             ItemStack taken = inSlot.split(1);
             screen.getMenu().setCarried(taken);
-            set(p, slot, inSlot);
+            set(player, kind, slot, inSlot);
         }
         event.setCanceled(true);
     }
 
-    /** Подсказка при наведении. */
     @SubscribeEvent
     public static void onRenderTooltip(ContainerScreenEvent.Render.Foreground event) {
         if (!(event.getContainerScreen() instanceof InventoryScreen screen)) return;
         int mouseX = event.getMouseX() - screen.getGuiLeft();
         int mouseY = event.getMouseY() - screen.getGuiTop();
+        Player player = Minecraft.getInstance().player;
+        if (player == null) return;
 
+        List<ItemStack> amulets = new ArrayList<>();
+        amulets(player).forEach(amulets::add);
         for (int i = 0; i < 2; i++) {
             int x = AMULET_X;
             int y = AMULET_Y + i * 18;
             if (mouseX >= x && mouseX < x + 18 && mouseY >= y && mouseY < y + 18) {
-                ItemStack stack = extraSlots[i];
+                ItemStack stack = i < amulets.size() ? amulets.get(i) : ItemStack.EMPTY;
                 if (!stack.isEmpty()) {
                     event.getGuiGraphics().renderTooltip(screen.getMinecraft().font, stack, event.getMouseX(), event.getMouseY());
                 }
                 return;
             }
         }
+
+        List<ItemStack> rings = new ArrayList<>();
+        rings(player).forEach(rings::add);
         for (int i = 0; i < 2; i++) {
             int x = RING_X;
             int y = RING_Y + i * 18;
             if (mouseX >= x && mouseX < x + 18 && mouseY >= y && mouseY < y + 18) {
-                ItemStack stack = extraSlots[2 + i];
+                ItemStack stack = i < rings.size() ? rings.get(i) : ItemStack.EMPTY;
                 if (!stack.isEmpty()) {
                     event.getGuiGraphics().renderTooltip(screen.getMinecraft().font, stack, event.getMouseX(), event.getMouseY());
                 }
