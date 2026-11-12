@@ -34,13 +34,7 @@ jobs:
           ls -la src/main/java/com/example/elementalmagic/magic/ || echo "MAGIC FOLDER NOT FOUND"
 
       - name: Run gradle build
-        run: |
-          if [ -f ./gradlew ]; then
-            chmod +x ./gradlew
-            ./gradlew build --no-configuration-cache
-          else
-            gradle build --no-configuration-cache
-          fi
+        run: gradle build --no-configuration-cache
 
       - name: Upload mod jar
         uses: actions/upload-artifact@v4
