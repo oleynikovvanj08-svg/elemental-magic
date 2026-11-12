@@ -1,5 +1,6 @@
 package com.example.elementalmagic;
 
+import com.example.elementalmagic.entity.ModEntities;
 import com.example.elementalmagic.magic.Element;
 import com.example.elementalmagic.magic.Spell;
 import com.mojang.serialization.Codec;
@@ -199,6 +200,12 @@ public final class ModRegistry {
                     for (ArmorItem.Type type : ARMOR_TYPES) out.accept(ARMOR.get(e).get(type).get());
                     out.accept(AMULETS.get(e).get());
                     out.accept(RINGS.get(e).get());
+                    for (ModEntities.MobEntry m : ModEntities.ALL) {
+                        if (m.element() == e) out.accept(m.material().get());
+                    }
+                    for (ModEntities.MobEntry m : ModEntities.ALL) {
+                        if (m.element() == e) out.accept(m.egg().get());
+                    }
                     for (DeferredItem<ScrollItem> scroll : SCROLLS.get(e)) out.accept(scroll.get());
                 }
             })
@@ -213,6 +220,7 @@ public final class ModRegistry {
         EFFECTS.register(bus);
         POTIONS.register(bus);
         TABS.register(bus);
+        ModEntities.register(bus);
     }
 
     private ModRegistry() {}
