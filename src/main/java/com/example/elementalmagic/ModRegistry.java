@@ -1,82 +1,182 @@
-Run gradle build --no-configuration-cache
-Starting a Gradle Daemon (subsequent builds will be faster)
-> Configure project :
-Creating Minecraft artifacts without recompilation.
-> Task :createMinecraftArtifacts
-Loaded 131 artifacts from /home/runner/work/elemental-magic/elemental-magic/build/tmp/createMinecraftArtifacts/nfrt_artifact_manifest.properties
-*** Started working on downloadJson
- ✓ Completed downloadJson in 0.02s
-*** Started working on downloadClient
-*** Started working on downloadClientMappings
-*** Started working on downloadServer
- ✓ Completed downloadServer in 0.03s
- ✓ Completed downloadClient in 0.03s
- ✓ Completed downloadClientMappings in 0.03s
-*** Started working on stripClient
- ♻ Used cache of stripClient in 0.00s
-*** Started working on mergeMappings
- ♻ Used cache of mergeMappings in 0.00s
-*** Started working on extractServer
- ♻ Used cache of extractServer in 0.00s
-*** Started working on stripServer
- ♻ Used cache of stripServer in 0.00s
-*** Started working on merge
- ♻ Used cache of merge in 0.00s
-*** Started working on rename
- ♻ Used cache of rename in 0.00s
-*** Started working on binaryPatch
- ♻ Used cache of binaryPatch in 0.00s
-*** Started working on copyUnpatchedClasses
- ♻ Used cache of copyUnpatchedClasses in 0.00s
-*** Started working on applyDevTransforms
- ♻ Used cache of applyDevTransforms in 0.00s
-*** Started working on binaryWithNeoForge
- ♻ Used cache of binaryWithNeoForge in 0.00s
-Total runtime: 2.85s
-> Task :compileJava
-/home/runner/work/elemental-magic/elemental-magic/src/main/java/com/example/elementalmagic/SpellbookItem.java:56: error: cannot find symbol
-        Map<String, Long> cds = stack.getOrDefault(ModRegistry.SPELL_COOLDOWNS.get(), Map.of());
-                                                              ^
-  symbol:   variable SPELL_COOLDOWNS
-  location: class ModRegistry
-/home/runner/work/elemental-magic/elemental-magic/src/main/java/com/example/elementalmagic/SpellbookItem.java:63: error: cannot find symbol
-        Map<String, Long> cds = new HashMap<>(stack.getOrDefault(ModRegistry.SPELL_COOLDOWNS.get(), Map.of()));
-                                                                            ^
-  symbol:   variable SPELL_COOLDOWNS
-  location: class ModRegistry
-/home/runner/work/elemental-magic/elemental-magic/src/main/java/com/example/elementalmagic/SpellbookItem.java:65: error: cannot find symbol
-        stack.set(ModRegistry.SPELL_COOLDOWNS.get(), cds);
-                             ^
-  symbol:   variable SPELL_COOLDOWNS
-  location: class ModRegistry
-/home/runner/work/elemental-magic/elemental-magic/src/main/java/com/example/elementalmagic/SpellbookItem.java:92: error: cannot find symbol
-            msg = msg.append(Component.literal(" [" + String.format("%.1f", cdLeft / 20.0) + " с]")
-                     ^
-  symbol:   method append(MutableComponent)
-  location: variable msg of type Component
-/home/runner/work/elemental-magic/elemental-magic/src/main/java/com/example/elementalmagic/network/ModNetwork.java:13: warning: [removal] bus() in EventBusSubscriber has been deprecated and marked for removal
-@EventBusSubscriber(modid = MagicMod.MODID, bus = EventBusSubscriber.Bus.MOD)
-                                            ^
-/home/runner/work/elemental-magic/elemental-magic/src/main/java/com/example/elementalmagic/network/ModNetwork.java:13: warning: [removal] Bus in EventBusSubscriber has been deprecated and marked for removal
-@EventBusSubscriber(modid = MagicMod.MODID, bus = EventBusSubscriber.Bus.MOD)
-                                                                    ^
-/home/runner/work/elemental-magic/elemental-magic/src/main/java/com/example/elementalmagic/client/ClientKeys.java:12: warning: [removal] bus() in EventBusSubscriber has been deprecated and marked for removal
-@EventBusSubscriber(modid = MagicMod.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
-                                            ^
-/home/runner/work/elemental-magic/elemental-magic/src/main/java/com/example/elementalmagic/client/ClientKeys.java:12: warning: [removal] Bus in EventBusSubscriber has been deprecated and marked for removal
-@EventBusSubscriber(modid = MagicMod.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
-                                                                    ^
-4 errors
-4 warnings
-> Task :compileJava FAILED
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1794466825086.json
-2 actionable tasks: 2 executed
-FAILURE: Build failed with an exception.
-* What went wrong:
-Execution failed for task ':compileJava'.
-> Compilation failed; see the compiler error output for details.
-* Try:
-> Run with --info option to get more log output.
-> Run with --scan to get full insights.
-BUILD FAILED in 31s
-Error: Process completed with exit code 1.
+package com.example.elementalmagic;
+
+import com.example.elementalmagic.magic.Element;
+import com.mojang.serialization.Codec;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ArmorMaterial;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.SwordItem;
+import net.minecraft.world.item.Tiers;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.material.MapColor;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.attachment.AttachmentType;
+import net.neoforged.neoforge.registries.DeferredBlock;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredItem;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
+
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
+
+public final class ModRegistry {
+    private static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MagicMod.MODID);
+    private static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(MagicMod.MODID);
+    private static final DeferredRegister<ArmorMaterial> ARMOR_MATERIALS =
+            DeferredRegister.create(Registries.ARMOR_MATERIAL, MagicMod.MODID);
+    private static final DeferredRegister<DataComponentType<?>> COMPONENTS =
+            DeferredRegister.create(Registries.DATA_COMPONENT_TYPE, MagicMod.MODID);
+    private static final DeferredRegister<AttachmentType<?>> ATTACHMENTS =
+            DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, MagicMod.MODID);
+    private static final DeferredRegister<CreativeModeTab> TABS =
+            DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MagicMod.MODID);
+
+    public static final List<ArmorItem.Type> ARMOR_TYPES = List.of(
+            ArmorItem.Type.HELMET, ArmorItem.Type.CHESTPLATE, ArmorItem.Type.LEGGINGS, ArmorItem.Type.BOOTS);
+
+    public static final Supplier<AttachmentType<Integer>> MANA = ATTACHMENTS.register("mana",
+            () -> AttachmentType.builder(() -> Mana.BASE_MAX).serialize(Codec.INT).copyOnDeath().build());
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> SPELL_INDEX =
+            COMPONENTS.register("spell_index", () -> DataComponentType.<Integer>builder()
+                    .persistent(Codec.INT).networkSynchronized(ByteBufCodecs.VAR_INT).build());
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<List<Integer>>> LEARNED_SPELLS =
+            COMPONENTS.register("learned_spells", () -> DataComponentType.<List<Integer>>builder()
+                    .persistent(Codec.INT.listOf())
+                    .networkSynchronized(ByteBufCodecs.VAR_INT.apply(ByteBufCodecs.list()))
+                    .build());
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Map<String, Long>>> SPELL_COOLDOWNS =
+            COMPONENTS.register("spell_cooldowns", () -> DataComponentType.<Map<String, Long>>builder()
+                    .persistent(Codec.unboundedMap(Codec.STRING, Codec.LONG))
+                    .build());
+
+    public static final DeferredBlock<MagicTableBlock> MAGIC_TABLE = BLOCKS.register("magic_table",
+            () -> new MagicTableBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_PURPLE)
+                    .strength(3.0f, 1200f)
+                    .sound(SoundType.STONE)
+                    .lightLevel(state -> 7)));
+    public static final DeferredItem<BlockItem> MAGIC_TABLE_ITEM =
+            ITEMS.registerSimpleBlockItem("magic_table", MAGIC_TABLE);
+
+    public static final Map<Element, DeferredItem<SpellbookItem>> BOOKS = new EnumMap<>(Element.class);
+    public static final Map<Element, DeferredHolder<ArmorMaterial, ArmorMaterial>> ARMOR_MATS = new EnumMap<>(Element.class);
+    public static final Map<Element, Map<ArmorItem.Type, DeferredItem<ElementalArmorItem>>> ARMOR = new EnumMap<>(Element.class);
+    public static final Map<Element, DeferredItem<StaffItem>> STAVES = new EnumMap<>(Element.class);
+    public static final Map<Element, DeferredItem<AccessoryItem>> AMULETS = new EnumMap<>(Element.class);
+    public static final Map<Element, DeferredItem<AccessoryItem>> RINGS = new EnumMap<>(Element.class);
+    public static final Map<Element, List<DeferredItem<ScrollItem>>> SCROLLS = new EnumMap<>(Element.class);
+
+    static {
+        for (Element e : Element.values()) {
+            BOOKS.put(e, ITEMS.register(e.id + "_spellbook",
+                    () -> new SpellbookItem(e, new Item.Properties().stacksTo(1)
+                            .rarity(e.bossOnly ? Rarity.EPIC : Rarity.RARE))));
+
+            ARMOR_MATS.put(e, ARMOR_MATERIALS.register(e.id, () -> new ArmorMaterial(
+                    defense(e), 20, SoundEvents.ARMOR_EQUIP_DIAMOND, () -> Ingredient.EMPTY,
+                    List.of(new ArmorMaterial.Layer(ResourceLocation.fromNamespaceAndPath(MagicMod.MODID, e.id))),
+                    e == Element.EARTH ? 3f : 2f,
+                    e == Element.EARTH ? 0.1f : 0f)));
+
+            Map<ArmorItem.Type, DeferredItem<ElementalArmorItem>> set = new EnumMap<>(ArmorItem.Type.class);
+            for (ArmorItem.Type type : ARMOR_TYPES) {
+                set.put(type, ITEMS.register(e.id + "_" + type.getName(),
+                        () -> new ElementalArmorItem(e, ARMOR_MATS.get(e), type, new Item.Properties()
+                                .durability(type.getDurability(33)).rarity(Rarity.RARE))));
+            }
+            ARMOR.put(e, set);
+
+            STAVES.put(e, ITEMS.register(e.id + "_staff",
+                    () -> new StaffItem(e, new Item.Properties()
+                            .attributes(SwordItem.createAttributes(Tiers.DIAMOND, 3, -2.4f))
+                            .rarity(Rarity.RARE))));
+
+            AMULETS.put(e, ITEMS.register(e.id + "_amulet",
+                    () -> new AccessoryItem(e, AccessoryItem.Kind.AMULET,
+                            new Item.Properties().stacksTo(1).rarity(Rarity.EPIC))));
+            RINGS.put(e, ITEMS.register(e.id + "_ring",
+                    () -> new AccessoryItem(e, AccessoryItem.Kind.RING,
+                            new Item.Properties().stacksTo(1).rarity(Rarity.EPIC))));
+
+            List<DeferredItem<ScrollItem>> scrolls = new ArrayList<>();
+            for (int t = 1; t <= ScrollItem.TIERS; t++) {
+                final int tier = t;
+                scrolls.add(ITEMS.register(e.id + "_scroll_" + tier,
+                        () -> new ScrollItem(e, tier, new Item.Properties()
+                                .stacksTo(16).rarity(ScrollItem.rarity(e, tier)))));
+            }
+            SCROLLS.put(e, scrolls);
+        }
+    }
+
+    private static Map<ArmorItem.Type, Integer> defense(Element e) {
+        int helmet, chest, legs, boots;
+        switch (e) {
+            case EARTH -> { helmet = 3; chest = 8; legs = 6; boots = 3; }
+            case DARKNESS, AIR -> { helmet = 2; chest = 6; legs = 5; boots = 2; }
+            default -> { helmet = 3; chest = 7; legs = 5; boots = 2; }
+        }
+        Map<ArmorItem.Type, Integer> map = new EnumMap<>(ArmorItem.Type.class);
+        map.put(ArmorItem.Type.HELMET, helmet);
+        map.put(ArmorItem.Type.CHESTPLATE, chest);
+        map.put(ArmorItem.Type.LEGGINGS, legs);
+        map.put(ArmorItem.Type.BOOTS, boots);
+        map.put(ArmorItem.Type.BODY, chest + 3);
+        return map;
+    }
+
+    public static ItemStack fullBook(Element e) {
+        ItemStack stack = new ItemStack(BOOKS.get(e).get());
+        int size = SpellbookItem.allSpells(e).size();
+        List<Integer> all = new ArrayList<>();
+        for (int i = 0; i < size; i++) all.add(i);
+        stack.set(LEARNED_SPELLS.get(), List.copyOf(all));
+        return stack;
+    }
+
+    public static final Supplier<CreativeModeTab> TAB = TABS.register("main", () -> CreativeModeTab.builder()
+            .title(Component.translatableWithFallback("itemGroup.elementalmagic", "Стихийная магия"))
+            .icon(() -> new ItemStack(BOOKS.get(Element.FIRE).get()))
+            .displayItems((params, out) -> {
+                out.accept(MAGIC_TABLE_ITEM.get());
+                for (Element e : Element.values()) {
+                    out.accept(fullBook(e));
+                    out.accept(STAVES.get(e).get());
+                    for (ArmorItem.Type type : ARMOR_TYPES) out.accept(ARMOR.get(e).get(type).get());
+                    out.accept(AMULETS.get(e).get());
+                    out.accept(RINGS.get(e).get());
+                    for (DeferredItem<ScrollItem> scroll : SCROLLS.get(e)) out.accept(scroll.get());
+                }
+            })
+            .build());
+
+    public static void register(IEventBus bus) {
+        BLOCKS.register(bus);
+        ITEMS.register(bus);
+        ARMOR_MATERIALS.register(bus);
+        COMPONENTS.register(bus);
+        ATTACHMENTS.register(bus);
+        TABS.register(bus);
+    }
+
+    private ModRegistry() {}
+}
