@@ -215,7 +215,11 @@ public class SpellbookItem extends Item {
     }
 
     @Override
-    public boolean isFoil(ItemStack stack)     // ===== Статические методы для книг и посохов =====
+    public boolean isFoil(ItemStack stack) {
+        return true;
+    }
+
+    // ===== Статические методы для книг и посохов =====
 
     /** Заклинания из любого носителя (книга или посох). */
     public static List<Spell> spellsOf(ItemStack stack, Element element) {
@@ -265,11 +269,9 @@ public class SpellbookItem extends Item {
                 .append(Component.literal(" (" + (idx + 1) + "/" + list.size() + ")")
                         .withStyle(ChatFormatting.DARK_GRAY));
         if (cdLeft > 0) {
-            msg.append(Component.literal(" [" + String.format("%.1f", cdLeft / 20.0) + " с]")
+            msg.append(Component.literal(" [" + seconds(cdLeft) + " с]")
                     .withStyle(ChatFormatting.RED));
         }
         player.displayClientMessage(msg, true);
-    }{
-        return true;
     }
 }
