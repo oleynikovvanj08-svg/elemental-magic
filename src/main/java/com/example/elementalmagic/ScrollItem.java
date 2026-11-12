@@ -1,16 +1,22 @@
 package com.example.elementalmagic;
 
+import com.example.elementalmagic.magic.Element;
 import com.example.elementalmagic.magic.Spell;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
+import net.neoforged.neoforge.registries.DeferredItem;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ScrollItem extends Item {
+    /** Количество уровней свитков. */
+    public static final int TIERS = 5;
     private static final String[] TIER_NAMES = {"I", "II", "III", "IV", "V"};
 
     public final Spell spell;
@@ -18,6 +24,11 @@ public class ScrollItem extends Item {
     public ScrollItem(Spell spell, Properties props) {
         super(props);
         this.spell = spell;
+    }
+
+    /** Стихия заклинания на свитке. */
+    public Element element() {
+        return spell.element();
     }
 
     public static Rarity rarity(Spell spell) {
@@ -31,10 +42,27 @@ public class ScrollItem extends Item {
         return spell.tier() * 2;
     }
 
+    /**
+     * Случайный свиток стихии нужного уровня (1–5).
+     * Если свитков такого уровня нет, берётся любой свиток этой стихии.
+     * Возвращает пустой стак, если у стихии нет ни одного свитка.
+     */
+    public static ItemStack randomOfTier(Element element, int tier, RandomSource random) {
+        List<DeferredItem<ScrollItem>> all = ModRegistry.SCROLLS.get(element);
+        if (all == null || all.isEmpty()) return ItemStack.EMPTY;
+
+        List<DeferredItem<ScrollItem>> matching = new ArrayList<>();
+        for (DeferredItem<ScrollItem> item : all) {
+            if (item.get().spell.tier() == tier) matching.add(item);
+        }
+        List<DeferredItem<ScrollItem>> pool = matching.isEmpty() ? all : matching;
+        return new ItemStack(pool.get(random.nextInt(pool.size())).get());
+    }
+
     @Override
     public Component getName(ItemStack stack) {
         return Component.translatableWithFallback(getDescriptionId(),
-                "Свиток %s-го уровня: %s", TIER_NAMES[spell.tier() - 1], spell.name());
+                "Свиток %s уровня: %s", TIER_NAMES[spell.tier() - 1], spell.name());
     }
 
     @Override
