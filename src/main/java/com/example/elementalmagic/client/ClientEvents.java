@@ -5,6 +5,7 @@ import com.example.elementalmagic.SpellbookItem;
 import com.example.elementalmagic.network.SwitchSpellPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.InteractionHand;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -22,14 +23,24 @@ public final class ClientEvents {
 
         while (ClientKeys.PREV_SPELL.consumeClick()) send(player, -1);
         while (ClientKeys.NEXT_SPELL.consumeClick()) send(player, 1);
+        while (ClientKeys.OPEN_BOOK.consumeClick()) openBook(mc, player);
+    }
+
+    private static InteractionHand bookHand(LocalPlayer player) {
+        if (player.getMainHandItem().getItem() instanceof SpellbookItem) return InteractionHand.MAIN_HAND;
+        if (player.getOffhandItem().getItem() instanceof SpellbookItem) return InteractionHand.OFF_HAND;
+        return null;
     }
 
     private static void send(LocalPlayer player, int dir) {
-        boolean holdingBook = player.getMainHandItem().getItem() instanceof SpellbookItem
-                || player.getOffhandItem().getItem() instanceof SpellbookItem;
-        if (holdingBook) {
+        if (bookHand(player) != null) {
             PacketDistributor.sendToServer(new SwitchSpellPayload(dir));
         }
+    }
+
+    private static void openBook(Minecraft mc, LocalPlayer player) {
+        InteractionHand hand = bookHand(player);
+        if (hand != null) mc.setScreen(new SpellbookScreen(hand));
     }
 
     private ClientEvents() {}
