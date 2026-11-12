@@ -62,8 +62,15 @@ public class ScrollItem extends Item {
         }
         tooltip.add(Component.translatableWithFallback("tooltip.elementalmagic.scroll_cost",
                 "Запись: %s ур. опыта", xpCost()).withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatableWithFallback("tooltip.elementalmagic.scroll_hint",
-                "Книга этой школы в другой руке, ПКМ по магическому столу").withStyle(ChatFormatting.DARK_GRAY));
+        tooltip.add(Component.translatableWithFallback("tooltip.elementalmagic.scroll_hint_any",
+                "Любой гримуар в другой руке, ПКМ по магическому столу").withStyle(ChatFormatting.DARK_GRAY));
+        tooltip.add(Component.translatableWithFallback("tooltip.elementalmagic.scroll_bonus",
+                "Урон: +10% в гримуаре своей стихии, +5% в чужом").withStyle(ChatFormatting.DARK_GRAY));
+        Element opposite = element.opposite();
+        if (opposite != null) {
+            tooltip.add(Component.translatableWithFallback("tooltip.elementalmagic.scroll_penalty",
+                    "-5% в гримуаре стихии: %s", opposite.displayName()).withStyle(ChatFormatting.DARK_GRAY));
+        }
         if (element.bossOnly) {
             tooltip.add(Component.translatableWithFallback("tooltip.elementalmagic.boss_only",
                     "Добывается только с боссов").withStyle(ChatFormatting.DARK_PURPLE));
