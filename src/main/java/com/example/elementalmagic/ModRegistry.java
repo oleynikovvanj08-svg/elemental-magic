@@ -121,10 +121,9 @@ public final class ModRegistry {
             }
             ARMOR.put(e, set);
 
-            STAVES.put(e, ITEMS.register(e.id + "_staff",
-                    () -> new StaffItem(e, new Item.Properties()
-                            .attributes(SwordItem.createAttributes(Tiers.DIAMOND, 3, -2.4f))
-                            .rarity(Rarity.RARE))));
+                        STAVES.put(e, ITEMS.register(e.id + "_staff",
+                    () -> new StaffItem(e, new Item.Properties().stacksTo(1)
+                            .rarity(e.bossOnly ? Rarity.EPIC : Rarity.RARE))));
 
             AMULETS.put(e, ITEMS.register(e.id + "_amulet",
                     () -> new AccessoryItem(e, AccessoryItem.Kind.AMULET,
