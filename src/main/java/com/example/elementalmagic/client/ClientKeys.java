@@ -19,10 +19,14 @@ public final class ClientKeys {
     public static final KeyMapping NEXT_SPELL = new KeyMapping(
             "key.elementalmagic.next_spell", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_X, CATEGORY);
 
+    public static final KeyMapping OPEN_BOOK = new KeyMapping(
+            "key.elementalmagic.open_book", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_V, CATEGORY);
+
     @SubscribeEvent
     public static void registerKeys(RegisterKeyMappingsEvent event) {
         event.register(PREV_SPELL);
         event.register(NEXT_SPELL);
+        event.register(OPEN_BOOK);
     }
 
     private ClientKeys() {}
