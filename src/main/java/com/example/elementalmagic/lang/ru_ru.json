@@ -107,4 +107,5 @@
   "key.categories.elementalmagic": "Elemental Magic",
   "key.elementalmagic.prev_spell": "Предыдущее заклинание",
   "key.elementalmagic.next_spell": "Следующее заклинание"
+  "msg.elementalmagic.on_cooldown": "%s перезаряжается (%s с)"
 }
