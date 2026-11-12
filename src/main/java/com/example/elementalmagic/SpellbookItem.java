@@ -17,7 +17,9 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SpellbookItem extends Item {
     public final Element element;
@@ -27,13 +29,11 @@ public class SpellbookItem extends Item {
         this.element = element;
     }
 
-    /** Все заклинания школы. Если их ещё нет, пустой список. */
     public static List<Spell> allSpells(Element element) {
         List<Spell> list = Spells.byElement(element);
         return list == null ? List.of() : list;
     }
 
-    /** Номера записанных заклинаний. Новая книга знает только первое. */
     public static List<Integer> learned(ItemStack stack) {
         return stack.getOrDefault(ModRegistry.LEARNED_SPELLS.get(), List.of(0));
     }
@@ -51,10 +51,20 @@ public class SpellbookItem extends Item {
         return Math.floorMod(stack.getOrDefault(ModRegistry.SPELL_INDEX.get(), 0), size);
     }
 
-    /**
-     * Переключает заклинание: dir = 1 следующее, dir = -1 предыдущее.
-     * Вызывать только на сервере.
-     */
+    /** Возвращает оставшийся кулдаун заклинания в тиках (0 если готово). */
+    private int cooldownLeft(ItemStack stack, Spell spell, long currentTick) {
+        Map<String, Long> cds = stack.getOrDefault(ModRegistry.SPELL_COOLDOWNS.get(), Map.of());
+        long ready = cds.getOrDefault(spell.id(), 0L);
+        return (int) Math.max(0, ready - currentTick);
+    }
+
+    /** Ставит кулдаун для заклинания. */
+    private void setCooldown(ItemStack stack, Spell spell, long currentTick) {
+        Map<String, Long> cds = new HashMap<>(stack.getOrDefault(ModRegistry.SPELL_COOLDOWNS.get(), Map.of()));
+        cds.put(spell.id(), currentTick + spell.cooldown());
+        stack.set(ModRegistry.SPELL_COOLDOWNS.get(), cds);
+    }
+
     public void cycle(Player player, ItemStack stack, int dir) {
         List<Spell> list = spells(stack);
         if (list.isEmpty()) {
@@ -71,9 +81,18 @@ public class SpellbookItem extends Item {
         }
         int idx = Math.floorMod(index(stack, list.size()) + dir, list.size());
         stack.set(ModRegistry.SPELL_INDEX.get(), idx);
-        player.displayClientMessage(Component.translatable("msg.elementalmagic.selected", list.get(idx).name())
+        Spell spell = list.get(idx);
+        long tick = player.level().getGameTime();
+        int cdLeft = cooldownLeft(stack, spell, tick);
+        
+        Component msg = Component.translatable("msg.elementalmagic.selected", spell.name())
                 .append(Component.literal(" (" + (idx + 1) + "/" + list.size() + ")")
-                        .withStyle(ChatFormatting.DARK_GRAY)), true);
+                        .withStyle(ChatFormatting.DARK_GRAY));
+        if (cdLeft > 0) {
+            msg = msg.append(Component.literal(" [" + String.format("%.1f", cdLeft / 20.0) + " с]")
+                    .withStyle(ChatFormatting.RED));
+        }
+        player.displayClientMessage(msg, true);
     }
 
     @Override
@@ -90,15 +109,23 @@ public class SpellbookItem extends Item {
         }
         int idx = index(stack, list.size());
 
-        // Shift + ПКМ: следующее заклинание
         if (player.isShiftKeyDown()) {
             if (!level.isClientSide) cycle(player, stack, 1);
             return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
         }
 
-        // ПКМ: каст
         if (level instanceof ServerLevel serverLevel) {
             Spell spell = list.get(idx);
+            long tick = serverLevel.getGameTime();
+            int cdLeft = cooldownLeft(stack, spell, tick);
+
+            if (cdLeft > 0) {
+                player.displayClientMessage(Component.translatable("msg.elementalmagic.on_cooldown",
+                        spell.name(), String.format("%.1f", cdLeft / 20.0))
+                        .withStyle(ChatFormatting.RED), true);
+                return InteractionResultHolder.fail(stack);
+            }
+
             int cost = Mana.costFor(player, spell);
             int mana = Mana.get(player);
             boolean free = player.getAbilities().instabuild;
@@ -110,7 +137,7 @@ public class SpellbookItem extends Item {
             }
             if (spell.action().cast(serverLevel, player)) {
                 if (!free) Mana.set(player, mana - cost);
-                player.getCooldowns().addCooldown(this, spell.cooldown());
+                setCooldown(stack, spell, tick);
                 level.playSound(null, player.blockPosition(), SoundEvents.EVOKER_CAST_SPELL,
                         SoundSource.PLAYERS, 0.8f, 1.1f);
             } else {
@@ -134,6 +161,15 @@ public class SpellbookItem extends Item {
         tooltip.add(Component.literal("  ").append(s.school().displayName())
                 .append(Component.literal(" • " + s.manaCost() + " маны • "
                         + (s.cooldown() / 20.0) + " с").withStyle(ChatFormatting.DARK_GRAY)));
+
+        if (ctx.level() != null) {
+            int cdLeft = cooldownLeft(stack, s, ctx.level().getGameTime());
+            if (cdLeft > 0) {
+                tooltip.add(Component.literal("  Перезарядка: " + String.format("%.1f", cdLeft / 20.0) + " с")
+                        .withStyle(ChatFormatting.RED));
+            }
+        }
+
         tooltip.add(Component.translatable("tooltip.elementalmagic.hint").withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.literal("Z / X: сменить заклинание").withStyle(ChatFormatting.DARK_GRAY));
     }
