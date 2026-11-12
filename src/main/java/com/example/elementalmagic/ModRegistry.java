@@ -9,6 +9,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.BlockItem;
@@ -16,8 +18,7 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
-import net.minecraft.world.item.SwordItem;
-import net.minecraft.world.item.Tiers;
+import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -46,6 +47,10 @@ public final class ModRegistry {
             DeferredRegister.create(Registries.DATA_COMPONENT_TYPE, MagicMod.MODID);
     private static final DeferredRegister<AttachmentType<?>> ATTACHMENTS =
             DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, MagicMod.MODID);
+    private static final DeferredRegister<MobEffect> EFFECTS =
+            DeferredRegister.create(Registries.MOB_EFFECT, MagicMod.MODID);
+    private static final DeferredRegister<Potion> POTIONS =
+            DeferredRegister.create(Registries.POTION, MagicMod.MODID);
     private static final DeferredRegister<CreativeModeTab> TABS =
             DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MagicMod.MODID);
 
@@ -82,6 +87,19 @@ public final class ModRegistry {
                     .networkSynchronized(ByteBufCodecs.map(HashMap::new, ByteBufCodecs.STRING_UTF8, ByteBufCodecs.VAR_LONG))
                     .build());
 
+    // ===== Мана: предмет, эффект и зелья =====
+    public static final DeferredItem<Item> MANA_ITEM =
+            ITEMS.registerSimpleItem("mana", new Item.Properties().rarity(Rarity.UNCOMMON));
+
+    public static final DeferredHolder<MobEffect, MobEffect> MANA_RESTORE =
+            EFFECTS.register("mana_restore", ManaRestoreEffect::new);
+
+    public static final DeferredHolder<Potion, Potion> MANA_POTION = POTIONS.register("mana_restore",
+            () -> new Potion("mana_restore", new MobEffectInstance(MANA_RESTORE, 1, 0)));
+
+    public static final DeferredHolder<Potion, Potion> STRONG_MANA_POTION = POTIONS.register("strong_mana_restore",
+            () -> new Potion("mana_restore", new MobEffectInstance(MANA_RESTORE, 1, 1)));
+
     // ===== Магический стол =====
     public static final DeferredBlock<MagicTableBlock> MAGIC_TABLE = BLOCKS.register("magic_table",
             () -> new MagicTableBlock(BlockBehaviour.Properties.of()
@@ -99,6 +117,7 @@ public final class ModRegistry {
     public static final Map<Element, DeferredItem<StaffItem>> STAVES = new EnumMap<>(Element.class);
     public static final Map<Element, DeferredItem<AccessoryItem>> AMULETS = new EnumMap<>(Element.class);
     public static final Map<Element, DeferredItem<AccessoryItem>> RINGS = new EnumMap<>(Element.class);
+    /** Свитки стихии: по одному на каждое заклинание. */
     public static final Map<Element, List<DeferredItem<ScrollItem>>> SCROLLS = new EnumMap<>(Element.class);
 
     static {
@@ -121,7 +140,7 @@ public final class ModRegistry {
             }
             ARMOR.put(e, set);
 
-                         STAVES.put(e, ITEMS.register(e.id + "_staff",
+            STAVES.put(e, ITEMS.register(e.id + "_staff",
                     () -> new StaffItem(e, new Item.Properties().stacksTo(1)
                             .rarity(e.bossOnly ? Rarity.EPIC : Rarity.RARE))));
 
@@ -132,7 +151,13 @@ public final class ModRegistry {
                     () -> new AccessoryItem(e, AccessoryItem.Kind.RING,
                             new Item.Properties().stacksTo(1).rarity(Rarity.EPIC))));
 
-                                List<DeferredItem<ScrollItem>> scrolls = new ArrayList<>();
+            // Свиток для каждого заклинания стихии, id вида vine_grasp_scroll
+            List<DeferredItem<ScrollItem>> scrolls = new ArrayList<>();
+            for (Spell spell : SpellbookItem.allSpells(e)) {
+                scrolls.add(ITEMS.register(spell.id() + "_scroll",
+                        () -> new ScrollItem(spell, new Item.Properties()
+                                .stacksTo(16).rarity(ScrollItem.rarity(spell)))));
+            }
             SCROLLS.put(e, scrolls);
         }
     }
@@ -167,6 +192,7 @@ public final class ModRegistry {
             .icon(() -> new ItemStack(BOOKS.get(Element.FIRE).get()))
             .displayItems((params, out) -> {
                 out.accept(MAGIC_TABLE_ITEM.get());
+                out.accept(MANA_ITEM.get());
                 for (Element e : Element.values()) {
                     out.accept(fullBook(e));
                     out.accept(STAVES.get(e).get());
@@ -184,6 +210,8 @@ public final class ModRegistry {
         ARMOR_MATERIALS.register(bus);
         COMPONENTS.register(bus);
         ATTACHMENTS.register(bus);
+        EFFECTS.register(bus);
+        POTIONS.register(bus);
         TABS.register(bus);
     }
 
