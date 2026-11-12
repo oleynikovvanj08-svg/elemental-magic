@@ -2,6 +2,7 @@ package com.example.elementalmagic;
 
 import com.example.elementalmagic.magic.Spell;
 import com.example.elementalmagic.magic.Spells;
+import com.example.elementalmagic.magic.Element;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
@@ -34,11 +35,11 @@ public class MagicTableBlock extends Block {
         InteractionHand otherHand = hand == InteractionHand.MAIN_HAND ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
         ItemStack other = player.getItemInHand(otherHand);
 
-             ItemStack scroll;
+        ItemStack scroll;
         ItemStack carrier;
         Element element;
 
-        if (stack.getItem() instanceof ScrollItem sc && 
+        if (stack.getItem() instanceof ScrollItem sc &&
             (other.getItem() instanceof SpellbookItem book || other.getItem() instanceof StaffItem staff)) {
             scroll = stack;
             carrier = other;
@@ -52,7 +53,7 @@ public class MagicTableBlock extends Block {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
 
-        if (!level.isClientSide) write(level, pos, player, scroll, book);
+        if (!level.isClientSide) write(level, pos, player, scroll, carrier, element);
         return ItemInteractionResult.sidedSuccess(level.isClientSide);
     }
 
@@ -60,24 +61,23 @@ public class MagicTableBlock extends Block {
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (!level.isClientSide) {
             msg(player, "msg.elementalmagic.table_hint_any",
-                    "Возьми свиток в одну руку, любой гримуар в другую и нажми ПКМ по столу");
+                    "Возьми свиток в одну руку, гримуар или посох в другую и нажми ПКМ по столу");
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
 
-    private static void write(Level level, BlockPos pos, Player player, ItemStack scrollStack, ItemStack bookStack) {
-        ScrollItem scroll = (ScrollItem) scrollStack.getItem();
-        SpellbookItem book = (SpellbookItem) bookStack.getItem();
+    private static void write(Level level, BlockPos pos, Player player, ItemStack scrollStack, ItemStack carrier, Element element) {
+        ScrollItem scrollItem = (ScrollItem) scrollStack.getItem();
 
-        List<Spell> pool = SpellbookItem.allSpells(scroll.element);
-        int from = scroll.from(pool.size());
-        int to = scroll.to(pool.size());
+        List<Spell> pool = SpellbookItem.allSpells(scrollItem.element);
+        int from = scrollItem.from(pool.size());
+        int to = scrollItem.to(pool.size());
         if (from >= to) {
             msg(player, "msg.elementalmagic.no_spells", "В этой школе пока нет заклинаний такого уровня");
             return;
         }
 
-        List<String> learned = new ArrayList<>(SpellbookItem.learnedIds(bookStack, book.element));
+        List<String> learned = new ArrayList<>(SpellbookItem.learnedIds(carrier, element));
         Spell target = null;
         for (int i = from; i < to; i++) {
             if (!learned.contains(pool.get(i).id())) {
@@ -91,21 +91,21 @@ public class MagicTableBlock extends Block {
         }
 
         boolean free = player.getAbilities().instabuild;
-        int cost = scroll.xpCost();
+        int cost = scrollItem.xpCost();
         if (!free && player.experienceLevel < cost) {
             msg(player, "msg.elementalmagic.no_xp", "Нужно уровней опыта: %s", cost);
             return;
         }
 
         // Запоминаем выбранное заклинание, чтобы выбор не сбился после записи
-        List<Spell> before = book.spells(bookStack);
-        String selectedId = before.isEmpty() ? null : before.get(book.selectedIndex(bookStack, before.size())).id();
+        List<Spell> before = SpellbookItem.spellsOf(carrier, element);
+        String selectedId = before.isEmpty() ? null : before.get(SpellbookItem.selectedIndexOf(carrier, before.size())).id();
 
         learned.add(target.id());
         learned.sort(Comparator.comparingInt(Spells::order));
-        SpellbookItem.setLearnedIds(bookStack, learned);
+        SpellbookItem.setLearnedIds(carrier, learned);
         if (selectedId != null) {
-            bookStack.set(ModRegistry.SPELL_INDEX.get(), Math.max(0, learned.indexOf(selectedId)));
+            carrier.set(ModRegistry.SPELL_INDEX.get(), Math.max(0, learned.indexOf(selectedId)));
         }
 
         if (!free) {
@@ -119,7 +119,15 @@ public class MagicTableBlock extends Block {
                     pos.getX() + 0.5, pos.getY() + 1.2, pos.getZ() + 0.5, 40, 0.4, 0.4, 0.4, 0.5);
         }
 
-        float mult = book.element.bookMultiplier(target.element());
+        float mult;
+        if (carrier.getItem() instanceof SpellbookItem book) {
+            mult = book.element.bookMultiplier(target.element());
+        } else if (carrier.getItem() instanceof StaffItem staff) {
+            mult = staff.multiplier(target.element());
+        } else {
+            mult = 1f;
+        }
+
         player.displayClientMessage(Component.translatableWithFallback("msg.elementalmagic.learned",
                 "Записано заклинание: %s", target.name())
                 .withStyle(ChatFormatting.LIGHT_PURPLE)
