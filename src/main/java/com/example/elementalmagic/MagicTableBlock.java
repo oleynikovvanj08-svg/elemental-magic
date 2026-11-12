@@ -34,14 +34,20 @@ public class MagicTableBlock extends Block {
         InteractionHand otherHand = hand == InteractionHand.MAIN_HAND ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
         ItemStack other = player.getItemInHand(otherHand);
 
-        ItemStack scroll;
-        ItemStack book;
-        if (stack.getItem() instanceof ScrollItem && other.getItem() instanceof SpellbookItem) {
+               ItemStack scroll;
+        ItemStack carrier;
+        Element element;
+
+        if (stack.getItem() instanceof ScrollItem sc && 
+            (other.getItem() instanceof SpellbookItem book || other.getItem() instanceof StaffItem staff)) {
             scroll = stack;
-            book = other;
-        } else if (stack.getItem() instanceof SpellbookItem && other.getItem() instanceof ScrollItem) {
+            carrier = other;
+            element = other.getItem() instanceof SpellbookItem b ? b.element : ((StaffItem) other.getItem()).element;
+        } else if (other.getItem() instanceof ScrollItem sc &&
+                   (stack.getItem() instanceof SpellbookItem book || stack.getItem() instanceof StaffItem staff)) {
             scroll = other;
-            book = stack;
+            carrier = stack;
+            element = stack.getItem() instanceof SpellbookItem b ? b.element : ((StaffItem) stack.getItem()).element;
         } else {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
