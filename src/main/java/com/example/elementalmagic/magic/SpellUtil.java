@@ -1,7 +1,9 @@
 package com.example.elementalmagic.magic;
 
 import net.minecraft.core.Holder;
+import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -17,6 +19,7 @@ import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
@@ -28,6 +31,9 @@ import java.util.List;
 import java.util.function.BooleanSupplier;
 
 final class SpellUtil {
+
+    /** Тег в persistent data призванных существ: UUID хозяина. */
+    static final String OWNER_TAG = "em_owner";
 
     // ---------- Бонус к урону от гримуара ----------
 
@@ -45,10 +51,36 @@ final class SpellUtil {
         }
     }
 
+    /** Урон с учётом текущего множителя (нужно, чтобы знать реальный урон, например для лечения от урона). */
+    static float scaled(float amount) {
+        return amount * damageMultiplier;
+    }
+
+    /**
+     * Запоминает множитель урона на момент вызова и применяет его, когда задача выполнится позже.
+     * Без этого отложенные задачи теряют бонусы гримуара, посоха и уровня.
+     */
+    static Runnable bound(Runnable task) {
+        float m = damageMultiplier;
+        return () -> withDamageMultiplier(m, () -> {
+            task.run();
+            return true;
+        });
+    }
+
     // ---------- Поиск целей ----------
 
-    /** Существо, на которое смотрит игрок (сквозь стены не видит). */
+    /** Существо, на которое смотрит игрок (сквозь стены не видит). Союзников и питомцев пропускает. */
     static LivingEntity target(Player p, double range) {
+        return pickTarget(p, range, false);
+    }
+
+    /** То же, но можно выбрать и союзников (для лечащих заклинаний). */
+    static LivingEntity targetAny(Player p, double range) {
+        return pickTarget(p, range, true);
+    }
+
+    private static LivingEntity pickTarget(Player p, double range, boolean allowAllies) {
         Vec3 eye = p.getEyePosition();
         Vec3 look = p.getLookAngle().scale(range);
         double maxDist = range * range;
@@ -56,12 +88,13 @@ final class SpellUtil {
         if (block.getType() != HitResult.Type.MISS) maxDist = block.getLocation().distanceToSqr(eye);
         EntityHitResult hit = ProjectileUtil.getEntityHitResult(p, eye, eye.add(look),
                 p.getBoundingBox().expandTowards(look).inflate(1),
-                e -> e instanceof LivingEntity le && le.isAlive() && !e.isSpectator() && !isAlly(p, le),
+                e -> e instanceof LivingEntity le && le.isAlive() && !e.isSpectator()
+                        && (allowAllies || !isAlly(p, le)),
                 maxDist);
         return hit != null ? (LivingEntity) hit.getEntity() : null;
     }
 
-    /** Все существа вокруг точки, кроме самого игрока и его питомцев. */
+    /** Все существа вокруг точки, кроме самого игрока, его питомцев и призванных существ. */
     static List<LivingEntity> around(ServerLevel level, Player p, Vec3 center, double r) {
         return level.getEntitiesOfClass(LivingEntity.class, AABB.ofSize(center, r * 2, r * 2, r * 2),
                 e -> e != p && e.isAlive() && !isAlly(p, e) && e.distanceToSqr(center) <= r * r);
@@ -99,8 +132,11 @@ final class SpellUtil {
         return p.pick(range, 0, false).getLocation();
     }
 
+    /** Питомец игрока или существо, которое он призвал заклинанием. */
     static boolean isAlly(Player p, LivingEntity e) {
-        return e instanceof TamableAnimal t && t.isOwnedBy(p);
+        if (e instanceof TamableAnimal t && t.isOwnedBy(p)) return true;
+        var data = e.getPersistentData();
+        return data.hasUUID(OWNER_TAG) && data.getUUID(OWNER_TAG).equals(p.getUUID());
     }
 
     static boolean isUndead(LivingEntity e) {
@@ -147,11 +183,21 @@ final class SpellUtil {
         push(e, dir.normalize().scale(strength).add(0, 0.2, 0));
     }
 
+    /** Настоящая молния: бьёт током, поджигает и может задеть самого игрока. */
     static void lightning(ServerLevel level, Player p, Vec3 pos) {
         LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(level);
         if (bolt == null) return;
         bolt.moveTo(pos);
         if (p instanceof ServerPlayer sp) bolt.setCause(sp);
+        level.addFreshEntity(bolt);
+    }
+
+    /** Молния только для вида и звука: урона, огня и урона по хозяину нет, урон наносит само заклинание. */
+    static void lightningVisual(ServerLevel level, Vec3 pos) {
+        LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(level);
+        if (bolt == null) return;
+        bolt.moveTo(pos);
+        bolt.setVisualOnly(true);
         level.addFreshEntity(bolt);
     }
 
@@ -198,6 +244,11 @@ final class SpellUtil {
             level.sendParticles(type, center.x + Math.cos(a) * r, center.y + 0.2,
                     center.z + Math.sin(a) * r, 1, 0, 0, 0, 0);
         }
+    }
+
+    /** Частицы осколков блока (песок, камень, листва). */
+    static BlockParticleOption blockParticle(Block block) {
+        return new BlockParticleOption(ParticleTypes.BLOCK, block.defaultBlockState());
     }
 
     static void sound(ServerLevel level, Entity at, SoundEvent s, float pitch) {
