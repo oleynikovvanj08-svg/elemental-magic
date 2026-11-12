@@ -5,6 +5,7 @@ import com.example.elementalmagic.magic.Spell;
 import com.example.elementalmagic.magic.Spells;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -58,13 +59,14 @@ public class SpellbookItem extends Item {
         return (int) Math.max(0, ready - currentTick);
     }
 
-    /** Ставит кулдаун для заклинания. */
+    /** Записывает кулдаун для конкретного заклинания. */
     private void setCooldown(ItemStack stack, Spell spell, long currentTick) {
         Map<String, Long> cds = new HashMap<>(stack.getOrDefault(ModRegistry.SPELL_COOLDOWNS.get(), Map.of()));
         cds.put(spell.id(), currentTick + spell.cooldown());
         stack.set(ModRegistry.SPELL_COOLDOWNS.get(), cds);
     }
 
+    /** Переключает заклинание: dir = 1 следующее, dir = -1 предыдущее. Вызывать только на сервере. */
     public void cycle(Player player, ItemStack stack, int dir) {
         List<Spell> list = spells(stack);
         if (list.isEmpty()) {
@@ -84,12 +86,12 @@ public class SpellbookItem extends Item {
         Spell spell = list.get(idx);
         long tick = player.level().getGameTime();
         int cdLeft = cooldownLeft(stack, spell, tick);
-        
-        Component msg = Component.translatable("msg.elementalmagic.selected", spell.name())
+
+        MutableComponent msg = Component.translatable("msg.elementalmagic.selected", spell.name())
                 .append(Component.literal(" (" + (idx + 1) + "/" + list.size() + ")")
                         .withStyle(ChatFormatting.DARK_GRAY));
         if (cdLeft > 0) {
-            msg = msg.append(Component.literal(" [" + String.format("%.1f", cdLeft / 20.0) + " с]")
+            msg.append(Component.literal(" [" + String.format("%.1f", cdLeft / 20.0) + " с]")
                     .withStyle(ChatFormatting.RED));
         }
         player.displayClientMessage(msg, true);
@@ -120,9 +122,10 @@ public class SpellbookItem extends Item {
             int cdLeft = cooldownLeft(stack, spell, tick);
 
             if (cdLeft > 0) {
-                player.displayClientMessage(Component.translatable("msg.elementalmagic.on_cooldown",
-                        spell.name(), String.format("%.1f", cdLeft / 20.0))
-                        .withStyle(ChatFormatting.RED), true);
+                player.displayClientMessage(
+                        Component.literal(spell.name() + " перезаряжается (" +
+                                String.format("%.1f", cdLeft / 20.0) + " с)")
+                                .withStyle(ChatFormatting.RED), true);
                 return InteractionResultHolder.fail(stack);
             }
 
