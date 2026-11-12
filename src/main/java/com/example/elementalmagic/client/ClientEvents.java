@@ -2,10 +2,12 @@ package com.example.elementalmagic.client;
 
 import com.example.elementalmagic.MagicMod;
 import com.example.elementalmagic.SpellbookItem;
+import com.example.elementalmagic.StaffItem;
 import com.example.elementalmagic.network.SwitchSpellPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.Item;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -26,20 +28,22 @@ public final class ClientEvents {
         while (ClientKeys.OPEN_BOOK.consumeClick()) openBook(mc, player);
     }
 
-    private static InteractionHand bookHand(LocalPlayer player) {
-        if (player.getMainHandItem().getItem() instanceof SpellbookItem) return InteractionHand.MAIN_HAND;
-        if (player.getOffhandItem().getItem() instanceof SpellbookItem) return InteractionHand.OFF_HAND;
+    private static InteractionHand carrierHand(LocalPlayer player) {
+        Item main = player.getMainHandItem().getItem();
+        Item off = player.getOffhandItem().getItem();
+        if (main instanceof SpellbookItem || main instanceof StaffItem) return InteractionHand.MAIN_HAND;
+        if (off instanceof SpellbookItem || off instanceof StaffItem) return InteractionHand.OFF_HAND;
         return null;
     }
 
     private static void send(LocalPlayer player, int dir) {
-        if (bookHand(player) != null) {
+        if (carrierHand(player) != null) {
             PacketDistributor.sendToServer(new SwitchSpellPayload(dir));
         }
     }
 
     private static void openBook(Minecraft mc, LocalPlayer player) {
-        InteractionHand hand = bookHand(player);
+        InteractionHand hand = carrierHand(player);
         if (hand != null) mc.setScreen(new SpellbookScreen(hand));
     }
 
