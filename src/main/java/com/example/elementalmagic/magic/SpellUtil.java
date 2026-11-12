@@ -25,8 +25,25 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BooleanSupplier;
 
 final class SpellUtil {
+
+    // ---------- Бонус к урону от гримуара ----------
+
+    /** Множитель урона для заклинания, которое кастуется прямо сейчас. */
+    private static float damageMultiplier = 1f;
+
+    /** Выполняет каст с указанным множителем урона и возвращает его результат. */
+    static boolean withDamageMultiplier(float multiplier, BooleanSupplier cast) {
+        float previous = damageMultiplier;
+        damageMultiplier = multiplier;
+        try {
+            return cast.getAsBoolean();
+        } finally {
+            damageMultiplier = previous;
+        }
+    }
 
     // ---------- Поиск целей ----------
 
@@ -97,7 +114,7 @@ final class SpellUtil {
     // ---------- Действия ----------
 
     static void hurt(Player p, LivingEntity e, float amount) {
-        e.hurt(p.damageSources().indirectMagic(p, p), amount);
+        e.hurt(p.damageSources().indirectMagic(p, p), amount * damageMultiplier);
     }
 
     static void effect(LivingEntity e, Holder<MobEffect> effect, int ticks, int amplifier) {
