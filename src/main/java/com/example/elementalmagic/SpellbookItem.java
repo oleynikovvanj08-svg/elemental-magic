@@ -68,8 +68,7 @@ public class SpellbookItem extends Item {
     }
 
     public int selectedIndex(ItemStack stack, int size) {
-        if (size <= 0) return 0;
-        return Math.floorMod(stack.getOrDefault(ModRegistry.SPELL_INDEX.get(), 0), size);
+        return selectedIndexOf(stack, size);
     }
 
     /** Оставшийся кулдаун заклинания в тиках (0, если готово). */
@@ -77,12 +76,6 @@ public class SpellbookItem extends Item {
         Map<String, Long> cds = stack.getOrDefault(ModRegistry.SPELL_COOLDOWNS.get(), Map.of());
         long ready = cds.getOrDefault(spell.id(), 0L);
         return (int) Math.max(0, ready - currentTick);
-    }
-
-    private static void setCooldown(ItemStack stack, Spell spell, long currentTick) {
-        Map<String, Long> cds = new HashMap<>(stack.getOrDefault(ModRegistry.SPELL_COOLDOWNS.get(), Map.of()));
-        cds.put(spell.id(), currentTick + spell.cooldown());
-        stack.set(ModRegistry.SPELL_COOLDOWNS.get(), cds);
     }
 
     /** Стоимость маны с учётом бонусов игрока. */
@@ -100,33 +93,16 @@ public class SpellbookItem extends Item {
         return String.format("%.1f", ticks / 20.0);
     }
 
+    /** Множитель урона от носителя: книги или посоха. Без снаряжения и уровня. */
+    public static float carrierMultiplier(ItemStack stack, Element spellElement) {
+        if (stack.getItem() instanceof SpellbookItem book) return book.element.bookMultiplier(spellElement);
+        if (stack.getItem() instanceof StaffItem staff) return staff.multiplier(spellElement);
+        return 1f;
+    }
+
     /** Переключает заклинание: dir = 1 следующее, dir = -1 предыдущее. Вызывать только на сервере. */
     public void cycle(Player player, ItemStack stack, int dir) {
-        List<Spell> list = spells(stack);
-        if (list.isEmpty()) {
-            player.displayClientMessage(Component.translatableWithFallback("msg.elementalmagic.empty_book",
-                    "В книге нет заклинаний. Запиши их со свитков на магическом столе")
-                    .withStyle(ChatFormatting.GRAY), true);
-            return;
-        }
-        if (list.size() == 1) {
-            player.displayClientMessage(Component.translatableWithFallback("msg.elementalmagic.only_one",
-                    "Записано только одно заклинание. Запиши другие со свитков на магическом столе")
-                    .withStyle(ChatFormatting.GRAY), true);
-            return;
-        }
-        int idx = Math.floorMod(selectedIndex(stack, list.size()) + dir, list.size());
-        stack.set(ModRegistry.SPELL_INDEX.get(), idx);
-        Spell spell = list.get(idx);
-        int cdLeft = cooldownLeft(stack, spell, player.level().getGameTime());
-
-        MutableComponent msg = Component.translatable("msg.elementalmagic.selected", spell.name())
-                .append(Component.literal(" (" + (idx + 1) + "/" + list.size() + ")")
-                        .withStyle(ChatFormatting.DARK_GRAY));
-        if (cdLeft > 0) {
-            msg.append(Component.literal(" [" + seconds(cdLeft) + " с]").withStyle(ChatFormatting.RED));
-        }
-        player.displayClientMessage(msg, true);
+        cycleItem(player, stack, element, dir);
     }
 
     @Override
@@ -169,9 +145,12 @@ public class SpellbookItem extends Item {
                         .withStyle(ChatFormatting.RED), true);
                 return InteractionResultHolder.fail(stack);
             }
-            if (spell.castFrom(serverLevel, player, element)) {
+
+            // Бонус книги × бонус снаряжения. Бонус уровня castWith добавляет сам
+            float mult = element.bookMultiplier(spell.element()) * Mana.damageMultiplier(player, spell.element());
+            if (spell.castWith(serverLevel, player, mult)) {
                 if (!free) Mana.set(player, mana - cost);
-                setCooldown(stack, spell, tick);
+                setCooldownOf(stack, spell, tick);
                 level.playSound(null, player.blockPosition(), SoundEvents.EVOKER_CAST_SPELL,
                         SoundSource.PLAYERS, 0.8f, 1.1f);
             } else {
@@ -198,7 +177,7 @@ public class SpellbookItem extends Item {
         if (s.baseDamage() > 0) {
             float mult = element.bookMultiplier(s.element());
             tooltip.add(Component.literal("  Урон: " + String.format("%.1f", s.damageIn(element))
-                    + " (" + percent(mult) + ")").withStyle(ChatFormatting.DARK_GRAY));
+                    + " (" + percent(mult) + ", без снаряжения)").withStyle(ChatFormatting.DARK_GRAY));
         }
 
         if (ctx.level() != null) {
@@ -249,8 +228,8 @@ public class SpellbookItem extends Item {
     public static void cycleItem(Player player, ItemStack stack, Element element, int dir) {
         List<Spell> list = spellsOf(stack, element);
         if (list.isEmpty()) {
-            player.displayClientMessage(Component.translatableWithFallback("msg.elementalmagic.empty_book",
-                    "В носителе нет заклинаний. Запиши их со свитков на магическом столе")
+            player.displayClientMessage(Component.translatableWithFallback("msg.elementalmagic.empty_carrier",
+                    "Здесь нет заклинаний. Запиши их со свитков на магическом столе")
                     .withStyle(ChatFormatting.GRAY), true);
             return;
         }
@@ -269,8 +248,7 @@ public class SpellbookItem extends Item {
                 .append(Component.literal(" (" + (idx + 1) + "/" + list.size() + ")")
                         .withStyle(ChatFormatting.DARK_GRAY));
         if (cdLeft > 0) {
-            msg.append(Component.literal(" [" + seconds(cdLeft) + " с]")
-                    .withStyle(ChatFormatting.RED));
+            msg.append(Component.literal(" [" + seconds(cdLeft) + " с]").withStyle(ChatFormatting.RED));
         }
         player.displayClientMessage(msg, true);
     }
