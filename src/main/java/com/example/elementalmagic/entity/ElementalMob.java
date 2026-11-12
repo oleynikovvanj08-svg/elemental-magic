@@ -3,6 +3,7 @@ package com.example.elementalmagic.entity;
 import com.example.elementalmagic.ModRegistry;
 import com.example.elementalmagic.magic.Element;
 import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -89,6 +90,13 @@ public class ElementalMob extends Monster implements RangedAttackMob {
                 .add(Attributes.ARMOR, kind.armor)
                 .add(Attributes.KNOCKBACK_RESISTANCE, kind.knockbackResistance)
                 .add(Attributes.FOLLOW_RANGE, 32);
+    }
+
+    /** Название моба без ru_ru.json. */
+    @Override
+    protected Component getTypeName() {
+        if (element == null || kind == null) return super.getTypeName();
+        return Component.translatableWithFallback(getType().getDescriptionId(), ModEntities.mobName(element, kind));
     }
 
     private void addGoals() {
