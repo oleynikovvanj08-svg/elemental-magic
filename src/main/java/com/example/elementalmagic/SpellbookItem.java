@@ -215,7 +215,61 @@ public class SpellbookItem extends Item {
     }
 
     @Override
-    public boolean isFoil(ItemStack stack) {
+    public boolean isFoil(ItemStack stack)     // ===== Статические методы для книг и посохов =====
+
+    /** Заклинания из любого носителя (книга или посох). */
+    public static List<Spell> spellsOf(ItemStack stack, Element element) {
+        if (stack.getItem() instanceof SpellbookItem book) return book.spells(stack);
+        if (stack.getItem() instanceof StaffItem) {
+            List<Spell> out = new ArrayList<>();
+            for (String id : learnedIds(stack, element)) {
+                Spell s = Spells.byId(id);
+                if (s != null) out.add(s);
+            }
+            return out;
+        }
+        return List.of();
+    }
+
+    public static int selectedIndexOf(ItemStack stack, int size) {
+        if (size <= 0) return 0;
+        return Math.floorMod(stack.getOrDefault(ModRegistry.SPELL_INDEX.get(), 0), size);
+    }
+
+    public static void setCooldownOf(ItemStack stack, Spell spell, long currentTick) {
+        Map<String, Long> cds = new HashMap<>(stack.getOrDefault(ModRegistry.SPELL_COOLDOWNS.get(), Map.of()));
+        cds.put(spell.id(), currentTick + spell.cooldown());
+        stack.set(ModRegistry.SPELL_COOLDOWNS.get(), cds);
+    }
+
+    public static void cycleItem(Player player, ItemStack stack, Element element, int dir) {
+        List<Spell> list = spellsOf(stack, element);
+        if (list.isEmpty()) {
+            player.displayClientMessage(Component.translatableWithFallback("msg.elementalmagic.empty_book",
+                    "В носителе нет заклинаний. Запиши их со свитков на магическом столе")
+                    .withStyle(ChatFormatting.GRAY), true);
+            return;
+        }
+        if (list.size() == 1) {
+            player.displayClientMessage(Component.translatableWithFallback("msg.elementalmagic.only_one",
+                    "Записано только одно заклинание. Запиши другие со свитков на магическом столе")
+                    .withStyle(ChatFormatting.GRAY), true);
+            return;
+        }
+        int idx = Math.floorMod(selectedIndexOf(stack, list.size()) + dir, list.size());
+        stack.set(ModRegistry.SPELL_INDEX.get(), idx);
+        Spell spell = list.get(idx);
+        int cdLeft = cooldownLeft(stack, spell, player.level().getGameTime());
+
+        MutableComponent msg = Component.translatable("msg.elementalmagic.selected", spell.name())
+                .append(Component.literal(" (" + (idx + 1) + "/" + list.size() + ")")
+                        .withStyle(ChatFormatting.DARK_GRAY));
+        if (cdLeft > 0) {
+            msg.append(Component.literal(" [" + String.format("%.1f", cdLeft / 20.0) + " с]")
+                    .withStyle(ChatFormatting.RED));
+        }
+        player.displayClientMessage(msg, true);
+    }{
         return true;
     }
 }
