@@ -22,8 +22,50 @@ public final class SpellInfo {
         dmg("bears_fury", 12);
         dmg("eagle_dive", 6);
 
+        // ===== Новые заклинания (урон за одно попадание; ExtraSpells берёт числа отсюда) =====
+        // Молния
+        dmg("chain_lightning", 8);      // первый прыжок, дальше -25% за каждый
+        dmg("thunder_cloud", 9);        // за каждый из 3 ударов
+        // Свет
+        dmg("holy_bolt", 8);            // только враждебным мобам
+        dmg("purification", 6);         // только нежити
+        // Тьма
+        dmg("blood_pact", 14);
+        dmg("dark_touch", 9);           // ночью x1.6
+        // Вода
+        dmg("tidal_wave", 6);
+        dmg("suffocation", 2);          // за каждый из 8 тиков удушья
+        // Земля
+        dmg("stone_spike", 7);
+        dmg("stone_bullet", 9);
+        dmg("earthquake", 3);           // за каждый из 5 толчков
+        // Воздух
+        dmg("gust", 2);
+        dmg("repulsion", 3);
+        dmg("whirlwind", 5);
+        // Огонь
+        dmg("sacrificial_flame", 8);    // растёт при низком здоровье до x3.5
+        dmg("fire_breath", 3);          // за каждый из 8 импульсов
+        // Природа
+        dmg("living_roots", 3);
+        // Взрывы
+        dmg("rocket_jump", 5);
+        dmg("grenade", 14);
+        // Все стихии
+        dmg("elemental_resonance", 12);
+        // Звёзды
+        dmg("constellation", 5);        // за каждый из 5 снарядов
+        dmg("starfall", 9);             // за каждую из 5 звёзд
+        dmg("supernova", 30);
+        // Тёмная природа
+        dmg("plague_cloud", 2);         // за каждый из 4 импульсов
+        dmg("poison_roots", 2);         // за каждый из 6 импульсов
+        // Тени
+        dmg("shadow_step", 14);         // удар в спину
+
         // ===== Уровни заклинаний =====
         // Если заклинания здесь нет, уровень ставится автоматически по порядку в школе.
+        // У новых заклинаний уровень задан прямо в reg(...) в ExtraSpells.
         tier("vine_grasp", 1);
         tier("thorn_lash", 2);
         tier("healing_bloom", 2);
