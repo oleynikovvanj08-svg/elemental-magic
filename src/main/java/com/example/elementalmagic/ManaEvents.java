@@ -13,14 +13,13 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.brewing.RegisterBrewingRecipesEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 @EventBusSubscriber(modid = MagicMod.MODID)
 public final class ManaEvents {
-    /** Сколько маны падает с моба: от MIN_DROP до MAX_DROP. */
     private static final int MIN_DROP = 1;
     private static final int MAX_DROP = 2;
 
-    /** Мана падает с любого моба, которого убил игрок. */
     @SubscribeEvent
     public static void onLivingDrops(LivingDropsEvent event) {
         LivingEntity entity = event.getEntity();
@@ -37,12 +36,24 @@ public final class ManaEvents {
         event.getDrops().add(drop);
     }
 
-    /** Рецепты варки зелий восстановления маны. */
     @SubscribeEvent
     public static void onRegisterBrewing(RegisterBrewingRecipesEvent event) {
         PotionBrewing.Builder builder = event.getBuilder();
         builder.addMix(Potions.AWKWARD, ModRegistry.MANA_ITEM.get(), ModRegistry.MANA_POTION);
         builder.addMix(ModRegistry.MANA_POTION, Items.GLOWSTONE_DUST, ModRegistry.STRONG_MANA_POTION);
+    }
+
+    @SubscribeEvent
+    public static void onPlayerTick(PlayerTickEvent.Post event) {
+        Player player = event.getEntity();
+        if (player.level().isClientSide) return;
+        if (player.tickCount % Mana.REGEN_INTERVAL != 0) return;
+
+        int current = Mana.get(player);
+        int max = Mana.max(player);
+        if (current < max) {
+            Mana.set(player, current + Mana.regen(player));
+        }
     }
 
     private ManaEvents() {}
