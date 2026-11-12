@@ -44,4 +44,10 @@ public record Spell(String id, School school, int manaCost, int cooldown, CastAc
     public double cooldownSeconds() {
         return cooldown / 20.0;
     }
+
+    /** Каст из гримуара: весь урон через hurt() умножается на бонус книги. */
+    public boolean castFrom(ServerLevel level, Player player, Element bookElement) {
+        float mult = bookElement.bookMultiplier(school.element);
+        return SpellUtil.withDamageMultiplier(mult, () -> action.cast(level, player));
+    }
 }
