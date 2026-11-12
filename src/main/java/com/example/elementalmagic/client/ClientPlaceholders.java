@@ -18,10 +18,18 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.registries.DeferredItem;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -55,6 +63,29 @@ public final class ClientPlaceholders {
 
     private static boolean tinted(String vanilla) {
         return !vanilla.equals("zombie_spawn_egg") && !vanilla.equals("crying_obsidian");
+    }
+
+    @SubscribeEvent
+    public static void onClientSetup(FMLClientSetupEvent event) {
+        event.enqueueWork(ClientPlaceholders::createAccessorySlotTexture);
+    }
+
+    /** Создаёт текстуру слота для аксессуаров, если её ещё нет. */
+    private static void createAccessorySlotTexture() {
+        try {
+            Path runDir = Path.of(System.getProperty("user.dir"));
+            Path texture = runDir.resolve("src/main/resources/assets/" + MagicMod.MODID + "/textures/gui/accessory_slot.png");
+            if (Files.exists(texture)) return;
+
+            BufferedImage img = new BufferedImage(18, 18, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g = img.createGraphics();
+            g.setColor(new Color(139, 139, 139, 255));
+            g.drawRect(0, 0, 17, 17);
+            g.dispose();
+
+            Files.createDirectories(texture.getParent());
+            ImageIO.write(img, "PNG", texture.toFile());
+        } catch (Exception ignored) {}
     }
 
     @SubscribeEvent
