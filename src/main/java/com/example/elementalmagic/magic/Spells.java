@@ -10,7 +10,6 @@ public final class Spells {
     private static final Map<String, Spell> BY_ID = new HashMap<>();
 
     static {
-        // Обычные школы
         LightningSpells.init();
         LightSpells.init();
         DarknessSpells.init();
@@ -22,16 +21,14 @@ public final class Spells {
         AshSpells.init();
         ExplosionSpells.init();
         ElementalSpells.init();
-
-        // Школы с боссов
         TimeSpells.init();
         StarsSpells.init();
         DarkNatureSpells.init();
         ShadowSpells.init();
     }
 
-    static void reg(String id, School school, int mana, int cooldownTicks, Spell.CastAction action) {
-        Spell spell = new Spell(id, school, mana, cooldownTicks, action);
+    static void reg(String id, School school, int mana, int cooldownTicks, int tier, Spell.CastAction action) {
+        Spell spell = new Spell(id, school, mana, cooldownTicks, tier, action);
         ALL.add(spell);
         BY_ID.put(id, spell);
     }
@@ -40,12 +37,10 @@ public final class Spells {
         return ALL.stream().filter(s -> s.school().element == element).toList();
     }
 
-    /** Заклинание по id или null, если такого нет. */
     public static Spell byId(String id) {
         return BY_ID.get(id);
     }
 
-    /** Порядковый номер заклинания в общем списке. Нужен для сортировки внутри книги. */
     public static int order(String id) {
         Spell s = BY_ID.get(id);
         return s == null ? Integer.MAX_VALUE : ALL.indexOf(s);
