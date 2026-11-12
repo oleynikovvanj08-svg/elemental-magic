@@ -121,7 +121,7 @@ public final class ModRegistry {
             }
             ARMOR.put(e, set);
 
-                               STAVES.put(e, ITEMS.register(e.id + "_staff",
+                         STAVES.put(e, ITEMS.register(e.id + "_staff",
                     () -> new StaffItem(e, new Item.Properties().stacksTo(1)
                             .rarity(e.bossOnly ? Rarity.EPIC : Rarity.RARE))));
 
