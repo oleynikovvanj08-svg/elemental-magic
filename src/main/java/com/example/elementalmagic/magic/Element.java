@@ -23,6 +23,13 @@ public enum Element {
     DARK_NATURE("dark_nature", 0x556B2F, "Тёмная природа", true),
     SHADOW("shadow", 0x4B4B6E, "Тени", true);
 
+    /** Бонус к урону заклинаний своей стихии. */
+    public static final float OWN_BONUS = 1.10f;
+    /** Бонус к урону заклинаний чужой стихии. */
+    public static final float OTHER_BONUS = 1.05f;
+    /** Штраф к урону заклинаний противоположной стихии. */
+    public static final float OPPOSITE_PENALTY = 0.95f;
+
     public final String id;
     public final int color;
     public final String ruName;
@@ -38,5 +45,36 @@ public enum Element {
     public MutableComponent displayName() {
         return Component.translatableWithFallback("element.elementalmagic." + id, ruName)
                 .withStyle(s -> s.withColor(color));
+    }
+
+    /** Противоположная стихия или null, если её нет. */
+    public Element opposite() {
+        return switch (this) {
+            case DARKNESS -> LIGHT;
+            case LIGHT -> DARKNESS;
+            case FIRE -> WATER;
+            case WATER -> FIRE;
+            case NATURE -> DARK_NATURE;
+            case DARK_NATURE -> NATURE;
+            default -> null;
+        };
+    }
+
+    /**
+     * Множитель урона для заклинания стихии spellElement,
+     * если оно записано в гримуар этой стихии.
+     */
+    public float bookMultiplier(Element spellElement) {
+        if (spellElement == this) return OWN_BONUS;
+        if (spellElement == opposite()) return OPPOSITE_PENALTY;
+        return OTHER_BONUS;
+    }
+
+    /** Поиск стихии по id, например "fire". Возвращает null, если не найдено. */
+    public static Element byId(String id) {
+        for (Element e : values()) {
+            if (e.id.equals(id)) return e;
+        }
+        return null;
     }
 }
