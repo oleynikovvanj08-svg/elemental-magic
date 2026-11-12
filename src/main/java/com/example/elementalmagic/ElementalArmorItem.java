@@ -2,6 +2,7 @@ package com.example.elementalmagic;
 
 import com.example.elementalmagic.magic.Element;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
@@ -9,12 +10,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 
 import java.util.List;
-import java.util.function.Supplier;
 
 public class ElementalArmorItem extends ArmorItem {
     public final Element element;
 
-    public ElementalArmorItem(Element element, Supplier<ArmorMaterial> material, Type type, Properties props) {
+    public ElementalArmorItem(Element element, Holder<ArmorMaterial> material, Type type, Properties props) {
         super(material, type, props);
         this.element = element;
     }
