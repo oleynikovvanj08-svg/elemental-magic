@@ -1,9 +1,9 @@
 package com.example.elementalmagic;
 
+import com.example.elementalmagic.client.AccessorySlots;
 import com.example.elementalmagic.magic.Element;
 import com.example.elementalmagic.magic.Spell;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
@@ -11,10 +11,10 @@ public final class Mana {
     public static final int BASE_MAX = 100;
 
     // ===== Бонус к урону от снаряжения (0.10 = +10%) =====
-    /** Часть брони: заклинание другой стихии. */
-    public static final float ARMOR_ALL = 0.10f;
+    /** Часть брони: заклинание любой стихии. */
+    public static final float ARMOR_ALL = 0.05f;
     /** Часть брони: заклинание стихии этой брони. */
-    public static final float ARMOR_OWN = 0.20f;
+    public static final float ARMOR_OWN = 0.05f;
     /** Амулет или кольцо: заклинание другой стихии. */
     public static final float ACCESSORY_ALL = 0.10f;
     /** Амулет или кольцо: заклинание стихии аксессуара. */
@@ -32,16 +32,27 @@ public final class Mana {
     public static int max(Player p) {
         int max = BASE_MAX;
         for (ItemStack s : p.getArmorSlots()) {
-            if (s.getItem() instanceof ElementalArmorItem) max += 10;
+            if (s.getItem() instanceof ElementalArmorItem) max += 150;
         }
-        if (hasAccessory(p, AccessoryItem.Kind.AMULET, null)) max += 50;
-        if (hasAccessory(p, AccessoryItem.Kind.RING, null)) max += 15;
+        for (ItemStack s : AccessorySlots.amulets(p)) {
+            if (s.getItem() instanceof AccessoryItem) max += 50;
+        }
+        for (ItemStack s : AccessorySlots.rings(p)) {
+            if (s.getItem() instanceof AccessoryItem) max += 15;
+        }
         return max;
     }
 
     /** Сколько маны восстанавливается за полсекунды. */
     public static int regen(Player p) {
-        return hasAccessory(p, AccessoryItem.Kind.RING, null) ? 2 : 1;
+        boolean hasRing = false;
+        for (ItemStack s : AccessorySlots.rings(p)) {
+            if (s.getItem() instanceof AccessoryItem) {
+                hasRing = true;
+                break;
+            }
+        }
+        return hasRing ? 2 : 1;
     }
 
     /** Цена заклинания с учётом скидок. */
@@ -63,16 +74,18 @@ public final class Mana {
                 bonus += a.element == spellElement ? ARMOR_OWN : ARMOR_ALL;
             }
         }
-        bonus += accessoryBonus(p, AccessoryItem.Kind.AMULET, spellElement);
-        bonus += accessoryBonus(p, AccessoryItem.Kind.RING, spellElement);
+        for (ItemStack s : AccessorySlots.amulets(p)) {
+            bonus += accessoryBonus(s, spellElement);
+        }
+        for (ItemStack s : AccessorySlots.rings(p)) {
+            bonus += accessoryBonus(s, spellElement);
+        }
         return 1f + bonus;
     }
 
-    /** Учитывается один аксессуар каждого вида: подходящий по стихии, иначе любой. */
-    private static float accessoryBonus(Player p, AccessoryItem.Kind kind, Element spellElement) {
-        if (hasAccessory(p, kind, spellElement)) return ACCESSORY_OWN;
-        if (hasAccessory(p, kind, null)) return ACCESSORY_ALL;
-        return 0f;
+    private static float accessoryBonus(ItemStack stack, Element spellElement) {
+        if (!(stack.getItem() instanceof AccessoryItem acc)) return 0f;
+        return acc.element == spellElement ? ACCESSORY_OWN : ACCESSORY_ALL;
     }
 
     public static int armorPieces(Player p, Element e) {
@@ -88,14 +101,13 @@ public final class Mana {
                 || (p.getOffhandItem().getItem() instanceof StaffItem s2 && s2.element == e);
     }
 
-    /** element = null значит «любой стихии». */
+    /** Есть ли амулет или кольцо нужной стихии в слотах для аксессуаров. */
     public static boolean hasAccessory(Player p, AccessoryItem.Kind kind, Element element) {
-        Inventory inv = p.getInventory();
-        for (int i = 0; i < inv.getContainerSize(); i++) {
-            if (inv.getItem(i).getItem() instanceof AccessoryItem acc
-                    && acc.kind == kind && (element == null || acc.element == element)) {
-                return true;
-            }
+        Iterable<ItemStack> slots = kind == AccessoryItem.Kind.AMULET
+                ? AccessorySlots.amulets(p)
+                : AccessorySlots.rings(p);
+        for (ItemStack s : slots) {
+            if (s.getItem() instanceof AccessoryItem acc && acc.element == element) return true;
         }
         return false;
     }
