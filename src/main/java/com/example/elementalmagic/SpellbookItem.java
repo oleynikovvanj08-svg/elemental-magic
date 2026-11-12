@@ -51,6 +51,31 @@ public class SpellbookItem extends Item {
         return Math.floorMod(stack.getOrDefault(ModRegistry.SPELL_INDEX.get(), 0), size);
     }
 
+    /**
+     * Переключает заклинание: dir = 1 следующее, dir = -1 предыдущее.
+     * Вызывать только на сервере.
+     */
+    public void cycle(Player player, ItemStack stack, int dir) {
+        List<Spell> list = spells(stack);
+        if (list.isEmpty()) {
+            player.displayClientMessage(Component.translatableWithFallback("msg.elementalmagic.empty_book",
+                    "В книге нет заклинаний. Запиши их со свитков на магическом столе")
+                    .withStyle(ChatFormatting.GRAY), true);
+            return;
+        }
+        if (list.size() == 1) {
+            player.displayClientMessage(Component.translatableWithFallback("msg.elementalmagic.only_one",
+                    "Записано только одно заклинание. Запиши другие со свитков на магическом столе")
+                    .withStyle(ChatFormatting.GRAY), true);
+            return;
+        }
+        int idx = Math.floorMod(index(stack, list.size()) + dir, list.size());
+        stack.set(ModRegistry.SPELL_INDEX.get(), idx);
+        player.displayClientMessage(Component.translatable("msg.elementalmagic.selected", list.get(idx).name())
+                .append(Component.literal(" (" + (idx + 1) + "/" + list.size() + ")")
+                        .withStyle(ChatFormatting.DARK_GRAY)), true);
+    }
+
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
@@ -67,12 +92,7 @@ public class SpellbookItem extends Item {
 
         // Shift + ПКМ: следующее заклинание
         if (player.isShiftKeyDown()) {
-            idx = (idx + 1) % list.size();
-            stack.set(ModRegistry.SPELL_INDEX.get(), idx);
-            if (!level.isClientSide) {
-                player.displayClientMessage(Component.translatable(
-                        "msg.elementalmagic.selected", list.get(idx).name()), true);
-            }
+            if (!level.isClientSide) cycle(player, stack, 1);
             return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
         }
 
@@ -115,6 +135,7 @@ public class SpellbookItem extends Item {
                 .append(Component.literal(" • " + s.manaCost() + " маны • "
                         + (s.cooldown() / 20.0) + " с").withStyle(ChatFormatting.DARK_GRAY)));
         tooltip.add(Component.translatable("tooltip.elementalmagic.hint").withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.literal("Z / X: сменить заклинание").withStyle(ChatFormatting.DARK_GRAY));
     }
 
     @Override
