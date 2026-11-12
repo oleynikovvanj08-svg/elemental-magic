@@ -31,8 +31,7 @@ public class ManaRestoreEffect extends InstantenousMobEffect {
     private static void restore(LivingEntity target, int amplifier, double strength) {
         if (!(target instanceof Player player) || player.level().isClientSide) return;
         int amount = (int) Math.round(PER_LEVEL * (amplifier + 1) * strength);
-        int current = Mana.get(player);
-        int cap = Math.max(current, Mana.BASE_MAX);
-        Mana.set(player, Math.min(cap, current + amount));
+        // Mana.set сама ограничивает ману максимумом игрока с учётом брони и аксессуаров
+        Mana.set(player, Mana.get(player) + amount);
     }
 }
