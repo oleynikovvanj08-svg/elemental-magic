@@ -102,5 +102,9 @@
   "spell.elementalmagic.shadow_slash": "Теневой разрез",
   "spell.elementalmagic.backstab": "Удар в спину",
   "spell.elementalmagic.shadow_clone": "Теневой клон",
-  "spell.elementalmagic.void_blade": "Клинок пустоты"
+  "spell.elementalmagic.void_blade": "Клинок пустоты",
+
+  "key.categories.elementalmagic": "Elemental Magic",
+  "key.elementalmagic.prev_spell": "Предыдущее заклинание",
+  "key.elementalmagic.next_spell": "Следующее заклинание"
 }
