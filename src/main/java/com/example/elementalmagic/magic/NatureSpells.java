@@ -39,7 +39,7 @@ final class NatureSpells {
                 cleanse(e);
             }
             burst(level, mid(p), ParticleTypes.SPORE_BLOSSOM_AIR, 100, 8);
-            sound(level, p, SoundEvents.BONEMEAL_USE, 1.0f);
+            sound(level, p, SoundEvents.BONE_MEAL_USE, 1.0f);
             return true;
         });
 
