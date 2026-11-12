@@ -9,15 +9,11 @@ import net.minecraft.world.item.ItemStack;
 
 public final class Mana {
     public static final int BASE_MAX = 100;
+    public static final int REGEN_INTERVAL = 10;
 
-    // ===== Бонус к урону от снаряжения (0.10 = +10%) =====
-    /** Часть брони: заклинание любой стихии. */
     public static final float ARMOR_ALL = 0.05f;
-    /** Часть брони: заклинание стихии этой брони. */
     public static final float ARMOR_OWN = 0.05f;
-    /** Амулет или кольцо: заклинание другой стихии. */
     public static final float ACCESSORY_ALL = 0.10f;
-    /** Амулет или кольцо: заклинание стихии аксессуара. */
     public static final float ACCESSORY_OWN = 0.20f;
 
     public static int get(Player p) {
@@ -28,7 +24,6 @@ public final class Mana {
         p.setData(ModRegistry.MANA, Mth.clamp(value, 0, max(p)));
     }
 
-    /** Максимум маны с учётом брони и аксессуаров. */
     public static int max(Player p) {
         int max = BASE_MAX;
         for (ItemStack s : p.getArmorSlots()) {
@@ -43,7 +38,6 @@ public final class Mana {
         return max;
     }
 
-    /** Сколько маны восстанавливается за полсекунды. */
     public static int regen(Player p) {
         boolean hasRing = false;
         for (ItemStack s : AccessorySlots.rings(p)) {
@@ -55,7 +49,6 @@ public final class Mana {
         return hasRing ? 2 : 1;
     }
 
-    /** Цена заклинания с учётом скидок. */
     public static int costFor(Player p, Spell spell) {
         Element e = spell.school().element;
         double mult = 1.0;
@@ -66,7 +59,6 @@ public final class Mana {
         return (int) Math.ceil(spell.manaCost() * mult);
     }
 
-    /** Множитель урона от брони, амулета и кольца. 1.0 = без бонуса. */
     public static float damageMultiplier(Player p, Element spellElement) {
         float bonus = 0f;
         for (ItemStack s : p.getArmorSlots()) {
@@ -101,7 +93,6 @@ public final class Mana {
                 || (p.getOffhandItem().getItem() instanceof StaffItem s2 && s2.element == e);
     }
 
-    /** Есть ли амулет или кольцо нужной стихии в слотах для аксессуаров. */
     public static boolean hasAccessory(Player p, AccessoryItem.Kind kind, Element element) {
         Iterable<ItemStack> slots = kind == AccessoryItem.Kind.AMULET
                 ? AccessorySlots.amulets(p)
