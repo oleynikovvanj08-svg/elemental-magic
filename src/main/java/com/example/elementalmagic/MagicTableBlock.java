@@ -34,7 +34,7 @@ public class MagicTableBlock extends Block {
         InteractionHand otherHand = hand == InteractionHand.MAIN_HAND ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
         ItemStack other = player.getItemInHand(otherHand);
 
-               ItemStack scroll;
+             ItemStack scroll;
         ItemStack carrier;
         Element element;
 
