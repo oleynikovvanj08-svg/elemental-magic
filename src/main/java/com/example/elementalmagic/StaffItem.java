@@ -32,7 +32,7 @@ public class StaffItem extends Item {
         this.element = element;
     }
 
-    /** Множитель урона посоха выше, чем у книги. */
+    /** Множитель урона посоха. Он выше, чем у книги. */
     public float multiplier(Element spellElement) {
         if (spellElement == element) return OWN_BONUS;
         if (spellElement == element.opposite()) return OPPOSITE_PENALTY;
@@ -88,7 +88,8 @@ public class StaffItem extends Item {
                 return InteractionResultHolder.fail(stack);
             }
 
-            float mult = multiplier(spell.element());
+            // Бонус посоха × бонус снаряжения. Бонус уровня castWith добавляет сам
+            float mult = multiplier(spell.element()) * Mana.damageMultiplier(player, spell.element());
             if (spell.castWith(serverLevel, player, mult)) {
                 if (!free) Mana.set(player, mana - cost);
                 SpellbookItem.setCooldownOf(stack, spell, tick);
@@ -108,28 +109,30 @@ public class StaffItem extends Item {
         List<Spell> list = SpellbookItem.spellsOf(stack, element);
         tooltip.add(Component.translatableWithFallback("tooltip.elementalmagic.learned_count",
                 "Записано заклинаний: %s", list.size()).withStyle(ChatFormatting.GRAY));
-        if (list.isEmpty()) return;
 
-        Spell s = list.get(SpellbookItem.selectedIndexOf(stack, list.size()));
-        tooltip.add(Component.translatable("tooltip.elementalmagic.selected", s.name()));
-        tooltip.add(Component.literal("  ").append(s.school().displayName())
-                .append(Component.literal(" • " + s.manaCost() + " маны • "
-                        + s.cooldownSeconds() + " с").withStyle(ChatFormatting.DARK_GRAY)));
-        if (s.baseDamage() > 0) {
-            float mult = multiplier(s.element());
-            tooltip.add(Component.literal("  Урон: " + String.format("%.1f", s.baseDamage() * mult)
-                    + " (" + SpellbookItem.percent(mult) + ")").withStyle(ChatFormatting.DARK_GRAY));
-        }
-
-        if (ctx.level() != null) {
-            int cdLeft = SpellbookItem.cooldownLeft(stack, s, ctx.level().getGameTime());
-            if (cdLeft > 0) {
-                tooltip.add(Component.literal("  Перезарядка: " + seconds(cdLeft) + " с")
-                        .withStyle(ChatFormatting.RED));
+        if (!list.isEmpty()) {
+            Spell s = list.get(SpellbookItem.selectedIndexOf(stack, list.size()));
+            tooltip.add(Component.translatable("tooltip.elementalmagic.selected", s.name()));
+            tooltip.add(Component.literal("  ").append(s.school().displayName())
+                    .append(Component.literal(" • " + s.manaCost() + " маны • "
+                            + s.cooldownSeconds() + " с").withStyle(ChatFormatting.DARK_GRAY)));
+            if (s.baseDamage() > 0) {
+                float mult = multiplier(s.element());
+                tooltip.add(Component.literal("  Урон: " + String.format("%.1f", s.baseDamage() * mult)
+                        + " (" + SpellbookItem.percent(mult) + ", без снаряжения)")
+                        .withStyle(ChatFormatting.DARK_GRAY));
             }
+
+            if (ctx.level() != null) {
+                int cdLeft = SpellbookItem.cooldownLeft(stack, s, ctx.level().getGameTime());
+                if (cdLeft > 0) {
+                    tooltip.add(Component.literal("  Перезарядка: " + seconds(cdLeft) + " с")
+                            .withStyle(ChatFormatting.RED));
+                }
+            }
+            tooltip.add(Component.translatable("tooltip.elementalmagic.hint").withStyle(ChatFormatting.GRAY));
         }
 
-        tooltip.add(Component.translatable("tooltip.elementalmagic.hint").withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.literal("Z / X: сменить заклинание • V: открыть")
                 .withStyle(ChatFormatting.DARK_GRAY));
         tooltip.add(Component.literal("Бонус к урону: +20% своя школа, +10% чужая, -10% противоположная")
