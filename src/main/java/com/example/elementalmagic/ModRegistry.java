@@ -132,13 +132,7 @@ public final class ModRegistry {
                     () -> new AccessoryItem(e, AccessoryItem.Kind.RING,
                             new Item.Properties().stacksTo(1).rarity(Rarity.EPIC))));
 
-            List<DeferredItem<ScrollItem>> scrolls = new ArrayList<>();
-            for (int t = 1; t <= ScrollItem.TIERS; t++) {
-                final int tier = t;
-                scrolls.add(ITEMS.register(e.id + "_scroll_" + tier,
-                        () -> new ScrollItem(e, tier, new Item.Properties()
-                                .stacksTo(16).rarity(ScrollItem.rarity(e, tier)))));
-            }
+                                List<DeferredItem<ScrollItem>> scrolls = new ArrayList<>();
             SCROLLS.put(e, scrolls);
         }
     }
