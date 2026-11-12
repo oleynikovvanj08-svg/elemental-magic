@@ -1,6 +1,7 @@
 package com.example.elementalmagic;
 
 import com.example.elementalmagic.magic.Element;
+import com.example.elementalmagic.magic.Spell;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
@@ -31,6 +32,7 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -50,24 +52,37 @@ public final class ModRegistry {
     public static final List<ArmorItem.Type> ARMOR_TYPES = List.of(
             ArmorItem.Type.HELMET, ArmorItem.Type.CHESTPLATE, ArmorItem.Type.LEGGINGS, ArmorItem.Type.BOOTS);
 
+    // ===== Мана игрока =====
     public static final Supplier<AttachmentType<Integer>> MANA = ATTACHMENTS.register("mana",
             () -> AttachmentType.builder(() -> Mana.BASE_MAX).serialize(Codec.INT).copyOnDeath().build());
 
+    // ===== Номер выбранного заклинания =====
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> SPELL_INDEX =
             COMPONENTS.register("spell_index", () -> DataComponentType.<Integer>builder()
                     .persistent(Codec.INT).networkSynchronized(ByteBufCodecs.VAR_INT).build());
 
+    // ===== Старый формат записанных заклинаний (номера своей школы). Нужен для старых книг =====
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<List<Integer>>> LEARNED_SPELLS =
             COMPONENTS.register("learned_spells", () -> DataComponentType.<List<Integer>>builder()
                     .persistent(Codec.INT.listOf())
                     .networkSynchronized(ByteBufCodecs.VAR_INT.apply(ByteBufCodecs.list()))
                     .build());
 
+    // ===== Записанные заклинания любых школ (id заклинаний) =====
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<List<String>>> LEARNED_IDS =
+            COMPONENTS.register("learned_ids", () -> DataComponentType.<List<String>>builder()
+                    .persistent(Codec.STRING.listOf())
+                    .networkSynchronized(ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()))
+                    .build());
+
+    // ===== Кулдауны заклинаний: Map<spellId, readyTick> =====
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Map<String, Long>>> SPELL_COOLDOWNS =
             COMPONENTS.register("spell_cooldowns", () -> DataComponentType.<Map<String, Long>>builder()
                     .persistent(Codec.unboundedMap(Codec.STRING, Codec.LONG))
+                    .networkSynchronized(ByteBufCodecs.map(HashMap::new, ByteBufCodecs.STRING_UTF8, ByteBufCodecs.VAR_LONG))
                     .build());
 
+    // ===== Магический стол =====
     public static final DeferredBlock<MagicTableBlock> MAGIC_TABLE = BLOCKS.register("magic_table",
             () -> new MagicTableBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.COLOR_PURPLE)
@@ -77,6 +92,7 @@ public final class ModRegistry {
     public static final DeferredItem<BlockItem> MAGIC_TABLE_ITEM =
             ITEMS.registerSimpleBlockItem("magic_table", MAGIC_TABLE);
 
+    // ===== Предметы =====
     public static final Map<Element, DeferredItem<SpellbookItem>> BOOKS = new EnumMap<>(Element.class);
     public static final Map<Element, DeferredHolder<ArmorMaterial, ArmorMaterial>> ARMOR_MATS = new EnumMap<>(Element.class);
     public static final Map<Element, Map<ArmorItem.Type, DeferredItem<ElementalArmorItem>>> ARMOR = new EnumMap<>(Element.class);
@@ -144,12 +160,12 @@ public final class ModRegistry {
         return map;
     }
 
+    /** Книга со всеми заклинаниями своей школы (для творческой вкладки). */
     public static ItemStack fullBook(Element e) {
         ItemStack stack = new ItemStack(BOOKS.get(e).get());
-        int size = SpellbookItem.allSpells(e).size();
-        List<Integer> all = new ArrayList<>();
-        for (int i = 0; i < size; i++) all.add(i);
-        stack.set(LEARNED_SPELLS.get(), List.copyOf(all));
+        List<String> ids = new ArrayList<>();
+        for (Spell s : SpellbookItem.allSpells(e)) ids.add(s.id());
+        stack.set(LEARNED_IDS.get(), List.copyOf(ids));
         return stack;
     }
 
