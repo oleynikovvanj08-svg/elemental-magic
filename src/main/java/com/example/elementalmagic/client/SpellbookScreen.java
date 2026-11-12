@@ -1,5 +1,6 @@
 package com.example.elementalmagic.client;
 
+import com.example.elementalmagic.Mana;
 import com.example.elementalmagic.SpellbookItem;
 import com.example.elementalmagic.StaffItem;
 import com.example.elementalmagic.magic.Element;
@@ -17,7 +18,7 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
 
-/** Окно гримуара/посоха: список записанных заклинаний с характеристиками. */
+/** Окно гримуара или посоха: список записанных заклинаний с характеристиками. */
 public class SpellbookScreen extends Screen {
     private static final int PANEL_WIDTH = 320;
     private static final int LINE = 11;
@@ -31,13 +32,13 @@ public class SpellbookScreen extends Screen {
         this.hand = hand;
     }
 
-    private ItemStack bookStack() {
+    private ItemStack carrierStack() {
         LocalPlayer player = minecraft == null ? null : minecraft.player;
         return player == null ? ItemStack.EMPTY : player.getItemInHand(hand);
     }
 
     private int listTop() {
-        return 32;
+        return 44;
     }
 
     private int listBottom() {
@@ -46,8 +47,8 @@ public class SpellbookScreen extends Screen {
 
     @Override
     public void tick() {
-        // Если книгу убрали из руки, окно закрывается
-        Item item = bookStack().getItem();
+        // Если носитель убрали из руки, окно закрывается
+        Item item = carrierStack().getItem();
         if (!(item instanceof SpellbookItem || item instanceof StaffItem)) onClose();
     }
 
@@ -72,7 +73,7 @@ public class SpellbookScreen extends Screen {
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         super.render(g, mouseX, mouseY, partialTick);
 
-        ItemStack stack = bookStack();
+        ItemStack stack = carrierStack();
         Item item = stack.getItem();
         Element element;
         String title;
@@ -97,12 +98,16 @@ public class SpellbookScreen extends Screen {
         g.fill(left - 8, top - 8, right + 8, bottom + 8, 0xD0100C18);
         g.drawCenteredString(font, Component.literal(title).append(element.displayName()),
                 width / 2, 12, 0xFFFFFF);
-        g.drawCenteredString(font, Component.literal("Колесо мыши: прокрутка • Z / X: выбор • Esc: закрыть")
+        float gear = Mana.damageMultiplier(player, element);
+        g.drawCenteredString(font, Component.literal("Бонус снаряжения к своей стихии: "
+                        + SpellbookItem.percent(gear)).withStyle(ChatFormatting.GOLD),
+                width / 2, 24, 0xFFFFFF);
+        g.drawCenteredString(font, Component.literal("Колесо мыши: прокрутка • Esc: закрыть")
                 .withStyle(ChatFormatting.DARK_GRAY), width / 2, height - 14, 0xFFFFFF);
 
         List<Spell> spells = SpellbookItem.spellsOf(stack, element);
         if (spells.isEmpty()) {
-            g.drawCenteredString(font, Component.literal("В носителе нет заклинаний. Запиши их со свитков на магическом столе")
+            g.drawCenteredString(font, Component.literal("Здесь нет заклинаний. Запиши их со свитков на магическом столе")
                     .withStyle(ChatFormatting.GRAY), width / 2, top + 10, 0xFFFFFF);
             contentHeight = 0;
             return;
@@ -121,7 +126,7 @@ public class SpellbookScreen extends Screen {
 
             if (y + h > top && y < bottom) {
                 if (i == selected) g.fill(left - 4, y - 3, right + 4, y + h - 5, 0x30FFFFFF);
-                drawSpell(g, player, stack, item, spell, i, i == selected, desc, left, y, now);
+                drawSpell(g, player, stack, spell, i, i == selected, desc, left, y, now);
             }
             y += h;
             total += h;
@@ -130,11 +135,12 @@ public class SpellbookScreen extends Screen {
         contentHeight = total;
     }
 
-    private void drawSpell(GuiGraphics g, LocalPlayer player, ItemStack stack, Item item, Spell spell,
+    private void drawSpell(GuiGraphics g, LocalPlayer player, ItemStack stack, Spell spell,
                            int index, boolean selected, List<FormattedCharSequence> desc, int x, int y, long now) {
-        // Строка 1: номер и название
+        // Строка 1: номер, название и уровень
         MutableComponent name = Component.literal((index + 1) + ". ").withStyle(ChatFormatting.GRAY)
-                .append(spell.name());
+                .append(spell.name())
+                .append(Component.literal("  [ур. " + spell.tier() + "]").withStyle(ChatFormatting.DARK_GRAY));
         if (selected) name.append(Component.literal("  ◀ выбрано").withStyle(ChatFormatting.YELLOW));
         g.drawString(font, name, x, y, 0xFFFFFF);
 
@@ -145,14 +151,8 @@ public class SpellbookScreen extends Screen {
         g.drawString(font, info, x, y + LINE, 0xFFFFFF);
 
         // Строка 3: урон и перезарядка
-        float mult;
-        if (item instanceof SpellbookItem book) {
-            mult = book.element.bookMultiplier(spell.element());
-        } else if (item instanceof StaffItem staff) {
-            mult = staff.multiplier(spell.element());
-        } else {
-            mult = 1f;
-        }
+        float mult = SpellbookItem.carrierMultiplier(stack, spell.element())
+                * Mana.damageMultiplier(player, spell.element());
 
         MutableComponent stats;
         if (spell.baseDamage() > 0) {
