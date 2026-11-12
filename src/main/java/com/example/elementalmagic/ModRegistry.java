@@ -58,37 +58,43 @@ public final class ModRegistry {
     public static final List<ArmorItem.Type> ARMOR_TYPES = List.of(
             ArmorItem.Type.HELMET, ArmorItem.Type.CHESTPLATE, ArmorItem.Type.LEGGINGS, ArmorItem.Type.BOOTS);
 
-    // ===== Мана игрока =====
     public static final Supplier<AttachmentType<Integer>> MANA = ATTACHMENTS.register("mana",
             () -> AttachmentType.builder(() -> Mana.BASE_MAX).serialize(Codec.INT).copyOnDeath().build());
 
-    // ===== Номер выбранного заклинания =====
+    public static final Supplier<AttachmentType<List<ItemStack>>> AMULET_SLOTS = ATTACHMENTS.register("amulet_slots",
+            () -> AttachmentType.<List<ItemStack>>builder(() -> List.of(ItemStack.EMPTY, ItemStack.EMPTY))
+                    .serialize(ItemStack.OPTIONAL_CODEC.listOf())
+                    .copyOnDeath()
+                    .build());
+
+    public static final Supplier<AttachmentType<List<ItemStack>>> RING_SLOTS = ATTACHMENTS.register("ring_slots",
+            () -> AttachmentType.<List<ItemStack>>builder(() -> List.of(ItemStack.EMPTY, ItemStack.EMPTY))
+                    .serialize(ItemStack.OPTIONAL_CODEC.listOf())
+                    .copyOnDeath()
+                    .build());
+
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> SPELL_INDEX =
             COMPONENTS.register("spell_index", () -> DataComponentType.<Integer>builder()
                     .persistent(Codec.INT).networkSynchronized(ByteBufCodecs.VAR_INT).build());
 
-    // ===== Старый формат записанных заклинаний (номера своей школы). Нужен для старых книг =====
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<List<Integer>>> LEARNED_SPELLS =
             COMPONENTS.register("learned_spells", () -> DataComponentType.<List<Integer>>builder()
                     .persistent(Codec.INT.listOf())
                     .networkSynchronized(ByteBufCodecs.VAR_INT.apply(ByteBufCodecs.list()))
                     .build());
 
-    // ===== Записанные заклинания любых школ (id заклинаний) =====
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<List<String>>> LEARNED_IDS =
             COMPONENTS.register("learned_ids", () -> DataComponentType.<List<String>>builder()
                     .persistent(Codec.STRING.listOf())
                     .networkSynchronized(ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()))
                     .build());
 
-    // ===== Кулдауны заклинаний: Map<spellId, readyTick> =====
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Map<String, Long>>> SPELL_COOLDOWNS =
             COMPONENTS.register("spell_cooldowns", () -> DataComponentType.<Map<String, Long>>builder()
                     .persistent(Codec.unboundedMap(Codec.STRING, Codec.LONG))
                     .networkSynchronized(ByteBufCodecs.map(HashMap::new, ByteBufCodecs.STRING_UTF8, ByteBufCodecs.VAR_LONG))
                     .build());
 
-    // ===== Мана: предмет, эффект и зелья =====
     public static final DeferredItem<Item> MANA_ITEM =
             ITEMS.registerSimpleItem("mana", new Item.Properties().rarity(Rarity.UNCOMMON));
 
@@ -101,7 +107,6 @@ public final class ModRegistry {
     public static final DeferredHolder<Potion, Potion> STRONG_MANA_POTION = POTIONS.register("strong_mana_restore",
             () -> new Potion("mana_restore", new MobEffectInstance(MANA_RESTORE, 1, 1)));
 
-    // ===== Магический стол =====
     public static final DeferredBlock<MagicTableBlock> MAGIC_TABLE = BLOCKS.register("magic_table",
             () -> new MagicTableBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.COLOR_PURPLE)
@@ -111,14 +116,12 @@ public final class ModRegistry {
     public static final DeferredItem<BlockItem> MAGIC_TABLE_ITEM =
             ITEMS.registerSimpleBlockItem("magic_table", MAGIC_TABLE);
 
-    // ===== Предметы =====
     public static final Map<Element, DeferredItem<SpellbookItem>> BOOKS = new EnumMap<>(Element.class);
     public static final Map<Element, DeferredHolder<ArmorMaterial, ArmorMaterial>> ARMOR_MATS = new EnumMap<>(Element.class);
     public static final Map<Element, Map<ArmorItem.Type, DeferredItem<ElementalArmorItem>>> ARMOR = new EnumMap<>(Element.class);
     public static final Map<Element, DeferredItem<StaffItem>> STAVES = new EnumMap<>(Element.class);
     public static final Map<Element, DeferredItem<AccessoryItem>> AMULETS = new EnumMap<>(Element.class);
     public static final Map<Element, DeferredItem<AccessoryItem>> RINGS = new EnumMap<>(Element.class);
-    /** Свитки стихии: по одному на каждое заклинание. */
     public static final Map<Element, List<DeferredItem<ScrollItem>>> SCROLLS = new EnumMap<>(Element.class);
 
     static {
@@ -152,7 +155,6 @@ public final class ModRegistry {
                     () -> new AccessoryItem(e, AccessoryItem.Kind.RING,
                             new Item.Properties().stacksTo(1).rarity(Rarity.EPIC))));
 
-            // Свиток для каждого заклинания стихии, id вида vine_grasp_scroll
             List<DeferredItem<ScrollItem>> scrolls = new ArrayList<>();
             for (Spell spell : SpellbookItem.allSpells(e)) {
                 scrolls.add(ITEMS.register(spell.id() + "_scroll",
@@ -179,7 +181,6 @@ public final class ModRegistry {
         return map;
     }
 
-    /** Книга со всеми заклинаниями своей школы (для творческой вкладки). */
     public static ItemStack fullBook(Element e) {
         ItemStack stack = new ItemStack(BOOKS.get(e).get());
         List<String> ids = new ArrayList<>();
