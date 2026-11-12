@@ -1,27 +1,49 @@
-name: Build Elemental Magic
-on: [push, workflow_dispatch]
+name: Build
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
 
-      - uses: gradle/actions/setup-gradle@v4
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: "8.10.2"
+          gradle-version: 8.10.2
 
-      - name: Build mod
-        run: gradle build
+      - name: Diagnostics (where are the spell files)
+        run: |
+          echo "=== Commit ==="
+          git log -1 --oneline
+          echo "=== All *Spells.java files (non-ASCII shown as M-...) ==="
+          find . -name "*Spells*.java" | LC_ALL=C cat -A
+          echo "=== Contents of the magic folder ==="
+          ls -la src/main/java/com/example/elementalmagic/magic/ || echo "MAGIC FOLDER NOT FOUND"
 
-      - name: Upload jar
+      - name: Run gradle build
+        run: |
+          if [ -f ./gradlew ]; then
+            chmod +x ./gradlew
+            ./gradlew build --no-configuration-cache
+          else
+            gradle build --no-configuration-cache
+          fi
+
+      - name: Upload mod jar
         uses: actions/upload-artifact@v4
         with:
-          name: elementalmagic-jar
+          name: elemental-magic
           path: build/libs/*.jar
-          if-no-files-found: error
