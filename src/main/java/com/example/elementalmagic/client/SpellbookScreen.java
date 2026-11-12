@@ -1,6 +1,8 @@
 package com.example.elementalmagic.client;
 
 import com.example.elementalmagic.SpellbookItem;
+import com.example.elementalmagic.StaffItem;
+import com.example.elementalmagic.magic.Element;
 import com.example.elementalmagic.magic.Spell;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
@@ -10,11 +12,12 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
 
-/** Окно гримуара: список записанных заклинаний с характеристиками. */
+/** Окно гримуара/посоха: список записанных заклинаний с характеристиками. */
 public class SpellbookScreen extends Screen {
     private static final int PANEL_WIDTH = 320;
     private static final int LINE = 11;
@@ -44,7 +47,8 @@ public class SpellbookScreen extends Screen {
     @Override
     public void tick() {
         // Если книгу убрали из руки, окно закрывается
-        if (!(bookStack().getItem() instanceof SpellbookItem)) onClose();
+        Item item = bookStack().getItem();
+        if (!(item instanceof SpellbookItem || item instanceof StaffItem)) onClose();
     }
 
     @Override
@@ -69,7 +73,19 @@ public class SpellbookScreen extends Screen {
         super.render(g, mouseX, mouseY, partialTick);
 
         ItemStack stack = bookStack();
-        if (!(stack.getItem() instanceof SpellbookItem book)) return;
+        Item item = stack.getItem();
+        Element element;
+        String title;
+        if (item instanceof SpellbookItem book) {
+            element = book.element;
+            title = "Гримуар: ";
+        } else if (item instanceof StaffItem staff) {
+            element = staff.element;
+            title = "Посох: ";
+        } else {
+            return;
+        }
+
         if (minecraft == null || minecraft.player == null || minecraft.level == null) return;
         LocalPlayer player = minecraft.player;
 
@@ -79,20 +95,20 @@ public class SpellbookScreen extends Screen {
         int bottom = listBottom();
 
         g.fill(left - 8, top - 8, right + 8, bottom + 8, 0xD0100C18);
-        g.drawCenteredString(font, Component.literal("Гримуар: ").append(book.element.displayName()),
+        g.drawCenteredString(font, Component.literal(title).append(element.displayName()),
                 width / 2, 12, 0xFFFFFF);
         g.drawCenteredString(font, Component.literal("Колесо мыши: прокрутка • Z / X: выбор • Esc: закрыть")
                 .withStyle(ChatFormatting.DARK_GRAY), width / 2, height - 14, 0xFFFFFF);
 
-        List<Spell> spells = book.spells(stack);
+        List<Spell> spells = SpellbookItem.spellsOf(stack, element);
         if (spells.isEmpty()) {
-            g.drawCenteredString(font, Component.literal("В книге нет заклинаний. Запиши их со свитков на магическом столе")
+            g.drawCenteredString(font, Component.literal("В носителе нет заклинаний. Запиши их со свитков на магическом столе")
                     .withStyle(ChatFormatting.GRAY), width / 2, top + 10, 0xFFFFFF);
             contentHeight = 0;
             return;
         }
 
-        int selected = book.selectedIndex(stack, spells.size());
+        int selected = SpellbookItem.selectedIndexOf(stack, spells.size());
         long now = minecraft.level.getGameTime();
 
         g.enableScissor(left - 8, top, right + 8, bottom);
@@ -105,7 +121,7 @@ public class SpellbookScreen extends Screen {
 
             if (y + h > top && y < bottom) {
                 if (i == selected) g.fill(left - 4, y - 3, right + 4, y + h - 5, 0x30FFFFFF);
-                drawSpell(g, player, stack, book, spell, i, i == selected, desc, left, y, now);
+                drawSpell(g, player, stack, item, spell, i, i == selected, desc, left, y, now);
             }
             y += h;
             total += h;
@@ -114,7 +130,7 @@ public class SpellbookScreen extends Screen {
         contentHeight = total;
     }
 
-    private void drawSpell(GuiGraphics g, LocalPlayer player, ItemStack stack, SpellbookItem book, Spell spell,
+    private void drawSpell(GuiGraphics g, LocalPlayer player, ItemStack stack, Item item, Spell spell,
                            int index, boolean selected, List<FormattedCharSequence> desc, int x, int y, long now) {
         // Строка 1: номер и название
         MutableComponent name = Component.literal((index + 1) + ". ").withStyle(ChatFormatting.GRAY)
@@ -129,10 +145,18 @@ public class SpellbookScreen extends Screen {
         g.drawString(font, info, x, y + LINE, 0xFFFFFF);
 
         // Строка 3: урон и перезарядка
-        float mult = book.element.bookMultiplier(spell.element());
+        float mult;
+        if (item instanceof SpellbookItem book) {
+            mult = book.element.bookMultiplier(spell.element());
+        } else if (item instanceof StaffItem staff) {
+            mult = staff.multiplier(spell.element());
+        } else {
+            mult = 1f;
+        }
+
         MutableComponent stats;
         if (spell.baseDamage() > 0) {
-            stats = Component.literal("Урон: " + fmt(spell.damageIn(book.element))).withStyle(ChatFormatting.RED)
+            stats = Component.literal("Урон: " + fmt(spell.baseDamage() * mult)).withStyle(ChatFormatting.RED)
                     .append(Component.literal(" (" + SpellbookItem.percent(mult) + ")")
                             .withStyle(mult >= 1f ? ChatFormatting.GREEN : ChatFormatting.DARK_RED));
         } else {
