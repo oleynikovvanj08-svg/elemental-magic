@@ -50,4 +50,9 @@ public record Spell(String id, School school, int manaCost, int cooldown, CastAc
         float mult = bookElement.bookMultiplier(school.element);
         return SpellUtil.withDamageMultiplier(mult, () -> action.cast(level, player));
     }
+
+    /** Каст с произвольным множителем урона (для посохов). */
+    public boolean castWith(ServerLevel level, Player player, float damageMultiplier) {
+        return SpellUtil.withDamageMultiplier(damageMultiplier, () -> action.cast(level, player));
+    }
 }
