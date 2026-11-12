@@ -68,25 +68,11 @@ public class MagicTableBlock extends Block {
 
     private static void write(Level level, BlockPos pos, Player player, ItemStack scrollStack, ItemStack carrier, Element element) {
         ScrollItem scrollItem = (ScrollItem) scrollStack.getItem();
-
-        List<Spell> pool = SpellbookItem.allSpells(scrollItem.element);
-        int from = scrollItem.from(pool.size());
-        int to = scrollItem.to(pool.size());
-        if (from >= to) {
-            msg(player, "msg.elementalmagic.no_spells", "В этой школе пока нет заклинаний такого уровня");
-            return;
-        }
+        Spell target = scrollItem.spell;
 
         List<String> learned = new ArrayList<>(SpellbookItem.learnedIds(carrier, element));
-        Spell target = null;
-        for (int i = from; i < to; i++) {
-            if (!learned.contains(pool.get(i).id())) {
-                target = pool.get(i);
-                break;
-            }
-        }
-        if (target == null) {
-            msg(player, "msg.elementalmagic.all_learned", "Все заклинания этого уровня уже записаны");
+        if (learned.contains(target.id())) {
+            msg(player, "msg.elementalmagic.already_learned", "Это заклинание уже записано");
             return;
         }
 
@@ -97,7 +83,7 @@ public class MagicTableBlock extends Block {
             return;
         }
 
-        // Запоминаем выбранное заклинание, чтобы выбор не сбился после записи
+        // Запоминаем выбранное заклинание
         List<Spell> before = SpellbookItem.spellsOf(carrier, element);
         String selectedId = before.isEmpty() ? null : before.get(SpellbookItem.selectedIndexOf(carrier, before.size())).id();
 
