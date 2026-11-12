@@ -37,8 +37,10 @@ public final class BossDrops {
 
         int count = 1 + r.nextInt(3);
         for (int i = 0; i < count; i++) {
+            // Из двух случайных уровней берётся меньший, поэтому высокие уровни реже
             int tier = 1 + Math.min(r.nextInt(ScrollItem.TIERS), r.nextInt(ScrollItem.TIERS));
-            drop(level, dropAt, new ItemStack(ModRegistry.SCROLLS.get(school).get(tier - 1).get()));
+            ItemStack scroll = ScrollItem.randomOfTier(school, tier, r);
+            if (!scroll.isEmpty()) drop(level, dropAt, scroll);
         }
     }
 
