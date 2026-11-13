@@ -5,7 +5,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.TamableAnimal;
@@ -16,7 +15,7 @@ public final class SummoningSpells {
 
     static void init() {
         // 1. Призыв волков: два верных волка
-        Spells.reg("summon_wolves", new School("summoning", Element.SUMMONING), 40, 1200, (level, player) -> {
+        Spells.reg("summon_wolves", School.SUMMONING, 40, 1200, (level, player) -> {
             boolean ok = true;
             ok &= spawn(level, player, EntityType.WOLF, "Призванный волк") != null;
             ok &= spawn(level, player, EntityType.WOLF, "Призванный волк") != null;
@@ -24,15 +23,15 @@ public final class SummoningSpells {
         });
 
         // 2. Призыв лисы-компаньона
-        Spells.reg("summon_fox", new School("summoning", Element.SUMMONING), 30, 1200, (level, player) ->
+        Spells.reg("summon_fox", School.SUMMONING, 30, 1200, (level, player) ->
                 spawn(level, player, EntityType.FOX, "Призванная лиса") != null);
 
         // 3. Призыв попугая-скаута
-        Spells.reg("summon_parrot", new School("summoning", Element.SUMMONING), 20, 1200, (level, player) ->
+        Spells.reg("summon_parrot", School.SUMMONING, 20, 1200, (level, player) ->
                 spawn(level, player, EntityType.PARROT, "Призванный попугай") != null);
 
         // 4. Стая духов: рой летучих мышей
-        Spells.reg("summon_swarm", new School("summoning", Element.SUMMONING), 30, 1200, (level, player) -> {
+        Spells.reg("summon_swarm", School.SUMMONING, 30, 1200, (level, player) -> {
             boolean ok = true;
             for (int i = 0; i < 4; i++) {
                 ok &= spawn(level, player, EntityType.BAT, "Малый дух") != null;
@@ -41,13 +40,13 @@ public final class SummoningSpells {
         });
 
         // 5. Призыв каменного стража
-        Spells.reg("summon_stone_guard", new School("summoning", Element.SUMMONING), 70, 2400, (level, player) ->
+        Spells.reg("summon_stone_guard", School.SUMMONING, 70, 2400, (level, player) ->
                 spawn(level, player, EntityType.IRON_GOLEM, "Каменный страж") != null);
     }
 
     private static Mob spawn(ServerLevel level, Player player, EntityType<? extends Mob> type, String name) {
         Vec3 front = player.position().add(player.getLookAngle().scale(2));
-        Mob mob = type.create(level, EntitySpawnReason.MOB_SUMMONED);
+        Mob mob = type.create(level);
         if (mob == null) return null;
         mob.setPos(front.x, player.getY(), front.z);
         mob.setYRot(player.getYRot());
