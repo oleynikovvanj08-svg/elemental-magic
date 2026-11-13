@@ -70,13 +70,7 @@ public class ElementalSwordItem extends SwordItem {
 
     /** Смена заклинания (для клавиш Z / X, как у посоха). */
     public void cycle(Player player, ItemStack stack, int dir) {
-        List<Spell> list = spells();
-        if (list.isEmpty()) return;
-        int idx = SpellbookItem.selectedIndexOf(stack, list.size());
-        int next = Math.floorMod(idx + dir, list.size());
-        stack.set(ModRegistry.SPELL_INDEX.get(), next);
-        player.displayClientMessage(
-                Component.translatable("tooltip.elementalmagic.selected", list.get(next).name()), true);
+        SpellbookItem.cycleItem(player, stack, element, dir);
     }
 
     @Override
