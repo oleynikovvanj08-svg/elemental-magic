@@ -119,5 +119,75 @@
   "key.elementalmagic.prev_spell": "Предыдущее заклинание",
   "key.elementalmagic.next_spell": "Следующее заклинание",
   "key.elementalmagic.open_book": "Открыть гримуар",
+  {
+  "item.elementalmagic.lightning_sword": "Грозовой клинок",
+  "item.elementalmagic.water_sword": "Приливной клинок",
+  "item.elementalmagic.earth_sword": "Каменный клинок",
+  "item.elementalmagic.air_sword": "Клинок ветров",
+  "item.elementalmagic.fire_sword": "Клинок пламени",
+  "item.elementalmagic.nature_sword": "Клинок рощи",
+  "item.elementalmagic.time_sword": "Клинок мгновений",
+  "item.elementalmagic.stars_sword": "Звёздный клинок",
+  "item.elementalmagic.dark_nature_sword": "Клинок скверны",
+
+  "spell.elementalmagic.sword_storm_dash": "Грозовой рывок",
+  "spell.elementalmagic.sword_storm_dash.desc": "Мгновенный бросок вперёд. Враги на пути получают урон от молний.",
+  "spell.elementalmagic.sword_static_charge": "Статический заряд",
+  "spell.elementalmagic.sword_static_charge.desc": "8 секунд твои удары мечом наносят дополнительный урон молнии и перескакивают на ближайшего врага.",
+  "spell.elementalmagic.sword_storm_wrath": "Гнев бури",
+  "spell.elementalmagic.sword_storm_wrath.desc": "Удар в землю: вокруг тебя бьют 5 молний, а враги в зоне оглушены.",
+
+  "spell.elementalmagic.sword_water_crescent": "Водяной серп",
+  "spell.elementalmagic.sword_water_crescent.desc": "Полумесяц воды перед тобой отбрасывает и замедляет врагов.",
+  "spell.elementalmagic.sword_whirlpool": "Водоворот",
+  "spell.elementalmagic.sword_whirlpool.desc": "Три раза подряд затягивает врагов вокруг к тебе и наносит им урон.",
+  "spell.elementalmagic.sword_healing_tide": "Исцеляющий прилив",
+  "spell.elementalmagic.sword_healing_tide.desc": "Лечит и очищает от негативных эффектов тебя и союзников рядом.",
+
+  "spell.elementalmagic.sword_stone_strike": "Каменный удар",
+  "spell.elementalmagic.sword_stone_strike.desc": "Ударная волна по земле прямо перед тобой подбрасывает и ранит врагов.",
+  "spell.elementalmagic.sword_stone_skin": "Каменная кожа",
+  "spell.elementalmagic.sword_stone_skin.desc": "На 8 секунд даёт сильную защиту от урона, но ты замедлен.",
+
+  "spell.elementalmagic.sword_wind_slash": "Воздушный росчерк",
+  "spell.elementalmagic.sword_wind_slash.desc": "Дальняя волна ветра пробивает всех врагов на линии взгляда.",
+  "spell.elementalmagic.sword_wind_dash": "Рывок ветра",
+  "spell.elementalmagic.sword_wind_dash.desc": "Быстрый бросок вперёд с коротким ускорением.",
+  "spell.elementalmagic.sword_repulsion": "Отталкивание",
+  "spell.elementalmagic.sword_repulsion.desc": "Отбрасывает от тебя всех в радиусе 8 блоков.",
+
+  "spell.elementalmagic.sword_flame_slash": "Пылающий разрез",
+  "spell.elementalmagic.sword_flame_slash.desc": "Огненная дуга перед тобой ранит и поджигает врагов.",
+  "spell.elementalmagic.sword_blazing_edge": "Раскалённый клинок",
+  "spell.elementalmagic.sword_blazing_edge.desc": "8 секунд твои удары мечом наносят дополнительный урон огнём.",
+  "spell.elementalmagic.sword_flame_whirl": "Пламенный вихрь",
+  "spell.elementalmagic.sword_flame_whirl.desc": "Круговой удар ранит и поджигает всех врагов вокруг.",
+
+  "spell.elementalmagic.sword_thorn_thrust": "Шипастый выпад",
+  "spell.elementalmagic.sword_thorn_thrust.desc": "Линия шипов перед тобой ранит врагов и отравляет их.",
+  "spell.elementalmagic.sword_root_grasp": "Захват корнями",
+  "spell.elementalmagic.sword_root_grasp.desc": "Враги в радиусе 6 блоков не могут двигаться 3 секунды.",
+  "spell.elementalmagic.sword_thorny_bark": "Шипастая кора",
+  "spell.elementalmagic.sword_thorny_bark.desc": "8 секунд часть урона от ближних атак возвращается атакующему.",
+
+  "spell.elementalmagic.sword_time_haste": "Ускорение",
+  "spell.elementalmagic.sword_time_haste.desc": "8 секунд высокая скорость движения и добычи.",
+  "spell.elementalmagic.sword_time_echo": "Эхо",
+  "spell.elementalmagic.sword_time_echo.desc": "Твой следующий удар мечом в течение 10 секунд повторяется через секунду по той же цели.",
+
+  "spell.elementalmagic.sword_blinding": "Ослепление",
+  "spell.elementalmagic.sword_blinding.desc": "Враги вокруг слепнут и 2 секунды не могут бить.",
+  "spell.elementalmagic.sword_orbit": "Орбита",
+  "spell.elementalmagic.sword_orbit.desc": "Три звезды 6 секунд вращаются вокруг тебя и бьют врагов, которые подошли близко.",
+  "spell.elementalmagic.sword_star_pull": "Притяжение звезды",
+  "spell.elementalmagic.sword_star_pull.desc": "В точке прицела возникает гравитация, она затягивает врагов, а затем взрывается.",
+
+  "spell.elementalmagic.sword_infecting_strike": "Заражающий удар",
+  "spell.elementalmagic.sword_infecting_strike.desc": "Отравляет цель, и зараза перескакивает на ближайших врагов.",
+  "spell.elementalmagic.sword_life_devour": "Пожирание жизни",
+  "spell.elementalmagic.sword_life_devour.desc": "Наносит урон цели и лечит тебя на половину этого урона.",
+  "spell.elementalmagic.sword_rot_shroud": "Покров гнили",
+  "spell.elementalmagic.sword_rot_shroud.desc": "8 секунд аура гнили иссушает и ранит врагов, которые подошли близко."
+}
   "msg.elementalmagic.on_cooldown": "%s перезаряжается (%s с)"
 }
