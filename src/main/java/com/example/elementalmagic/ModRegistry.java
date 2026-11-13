@@ -120,6 +120,8 @@ public final class ModRegistry {
     public static final Map<Element, DeferredHolder<ArmorMaterial, ArmorMaterial>> ARMOR_MATS = new EnumMap<>(Element.class);
     public static final Map<Element, Map<ArmorItem.Type, DeferredItem<ElementalArmorItem>>> ARMOR = new EnumMap<>(Element.class);
     public static final Map<Element, DeferredItem<StaffItem>> STAVES = new EnumMap<>(Element.class);
+    /** Магические мечи: есть не у всех стихий (см. ElementalSwordItem.HAS_SWORD). */
+    public static final Map<Element, DeferredItem<ElementalSwordItem>> SWORDS = new EnumMap<>(Element.class);
     public static final Map<Element, DeferredItem<AccessoryItem>> AMULETS = new EnumMap<>(Element.class);
     public static final Map<Element, DeferredItem<AccessoryItem>> RINGS = new EnumMap<>(Element.class);
     public static final Map<Element, List<DeferredItem<ScrollItem>>> SCROLLS = new EnumMap<>(Element.class);
@@ -147,6 +149,11 @@ public final class ModRegistry {
             STAVES.put(e, ITEMS.register(e.id + "_staff",
                     () -> new StaffItem(e, new Item.Properties().stacksTo(1)
                             .rarity(e.bossOnly ? Rarity.EPIC : Rarity.RARE))));
+
+            if (ElementalSwordItem.HAS_SWORD.contains(e)) {
+                SWORDS.put(e, ITEMS.register(e.id + "_sword",
+                        () -> new ElementalSwordItem(e, ElementalSwordItem.properties(e))));
+            }
 
             AMULETS.put(e, ITEMS.register(e.id + "_amulet",
                     () -> new AccessoryItem(e, AccessoryItem.Kind.AMULET,
@@ -198,6 +205,7 @@ public final class ModRegistry {
                 for (Element e : Element.values()) {
                     out.accept(fullBook(e));
                     out.accept(STAVES.get(e).get());
+                    if (SWORDS.containsKey(e)) out.accept(SWORDS.get(e).get());
                     for (ArmorItem.Type type : ARMOR_TYPES) out.accept(ARMOR.get(e).get(type).get());
                     out.accept(AMULETS.get(e).get());
                     out.accept(RINGS.get(e).get());
