@@ -54,6 +54,12 @@ public record ElementalSpawns() implements BiomeModifier {
                     Biomes.END_BARRENS);
             case DARK_NATURE -> any(b, Biomes.MANGROVE_SWAMP, Biomes.WARPED_FOREST);
             case SHADOW -> any(b, Biomes.DEEP_DARK, Biomes.DARK_FOREST);
+            // Новые стихии: пока своих мобов у них нет, ветки заданы на будущее
+            case ICE -> any(b, Biomes.SNOWY_PLAINS, Biomes.SNOWY_TAIGA, Biomes.ICE_SPIKES,
+                    Biomes.FROZEN_PEAKS);
+            case GRAVITY -> any(b, Biomes.JAGGED_PEAKS, Biomes.STONY_PEAKS, Biomes.FROZEN_PEAKS);
+            case POISON -> any(b, Biomes.SWAMP, Biomes.MANGROVE_SWAMP, Biomes.JUNGLE);
+            case SUMMONING -> any(b, Biomes.PLAINS, Biomes.TAIGA, Biomes.MEADOW);
         };
     }
 
