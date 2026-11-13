@@ -29,6 +29,10 @@ public final class Spells {
         AshSpells.init();
         ExplosionSpells.init();
         ElementalSpells.init();
+        IceSpells.init();
+        GravitySpells.init();
+        PoisonSpells.init();
+        SummoningSpells.init();
 
         // Школы с боссов
         TimeSpells.init();
