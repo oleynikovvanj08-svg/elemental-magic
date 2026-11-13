@@ -10,7 +10,6 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.*;
@@ -21,7 +20,7 @@ public final class IceSpells {
 
     static void init() {
         // 1. Ледяная стрела: попадание по взгляду, замедление
-        Spells.reg("frost_bolt", new School("ice", Element.ICE), 15, 60, (level, player) -> {
+        Spells.reg("glacier_bolt", School.GLACIER, 15, 60, (level, player) -> {
             LivingEntity target = rayTarget(player, 20);
             if (target == null) return false;
             target.hurt(player.damageSources().indirectMagic(player, player), 6.0f);
@@ -34,7 +33,7 @@ public final class IceSpells {
         });
 
         // 2. Ледяная нова: волна холода вокруг игрока
-        Spells.reg("ice_nova", new School("ice", Element.ICE), 30, 200, (level, player) -> {
+        Spells.reg("glacier_nova", School.GLACIER, 30, 200, (level, player) -> {
             List<Entity> targets = level.getEntities(player,
                     player.getBoundingBox().inflate(5), e -> e instanceof LivingEntity && e.isAlive());
             if (targets.isEmpty()) return false;
@@ -51,7 +50,7 @@ public final class IceSpells {
         });
 
         // 3. Ледяная тропа: площадка из льда под ногами
-        Spells.reg("frozen_path", new School("ice", Element.ICE), 20, 300, (level, player) -> {
+        Spells.reg("glacier_path", School.GLACIER, 20, 300, (level, player) -> {
             BlockPos base = player.blockPosition();
             int placed = 0;
             for (int dx = -3; dx <= 3; dx++) {
@@ -70,7 +69,7 @@ public final class IceSpells {
         });
 
         // 4. Метель: область заморозки в точке взгляда
-        Spells.reg("blizzard", new School("ice", Element.ICE), 50, 600, (level, player) -> {
+        Spells.reg("glacier_blizzard", School.GLACIER, 50, 600, (level, player) -> {
             Vec3 point = lookPoint(player, 20);
             List<Entity> targets = level.getEntities(player,
                     new AABB(point, point).inflate(6, 3, 6), e -> e instanceof LivingEntity && e.isAlive());
@@ -86,7 +85,7 @@ public final class IceSpells {
         });
 
         // 5. Ледяная тюрьма: клетка из уплотнённого льда вокруг цели
-        Spells.reg("ice_prison", new School("ice", Element.ICE), 40, 400, (level, player) -> {
+        Spells.reg("glacier_prison", School.GLACIER, 40, 400, (level, player) -> {
             LivingEntity target = nearest(player, 10);
             if (target == null) return false;
             BlockPos center = target.blockPosition();
@@ -112,7 +111,7 @@ public final class IceSpells {
         });
     }
 
-    // ===== Вспомогательные методы (копия для schools без общего SpellUtil) =====
+    // ===== Вспомогательные методы =====
 
     private static LivingEntity rayTarget(Player player, double maxDist) {
         Vec3 start = player.getEyePosition();
