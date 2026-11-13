@@ -93,10 +93,11 @@ public class SpellbookItem extends Item {
         return String.format("%.1f", ticks / 20.0);
     }
 
-    /** Множитель урона от носителя: книги или посоха. Без снаряжения и уровня. */
+    /** Множитель урона от носителя: книги, посоха или меча. Без снаряжения и уровня. */
     public static float carrierMultiplier(ItemStack stack, Element spellElement) {
         if (stack.getItem() instanceof SpellbookItem book) return book.element.bookMultiplier(spellElement);
         if (stack.getItem() instanceof StaffItem staff) return staff.multiplier(spellElement);
+        if (stack.getItem() instanceof ElementalSwordItem sword) return sword.multiplier(spellElement);
         return 1f;
     }
 
@@ -198,9 +199,9 @@ public class SpellbookItem extends Item {
         return true;
     }
 
-    // ===== Статические методы для книг и посохов =====
+    // ===== Статические методы для книг, посохов и мечей =====
 
-    /** Заклинания из любого носителя (книга или посох). */
+    /** Заклинания из любого носителя (книга, посох или магический меч). */
     public static List<Spell> spellsOf(ItemStack stack, Element element) {
         if (stack.getItem() instanceof SpellbookItem book) return book.spells(stack);
         if (stack.getItem() instanceof StaffItem) {
@@ -211,6 +212,8 @@ public class SpellbookItem extends Item {
             }
             return out;
         }
+        // У меча три собственных заклинания, они не записываются со свитков
+        if (stack.getItem() instanceof ElementalSwordItem sword) return sword.spells();
         return List.of();
     }
 
