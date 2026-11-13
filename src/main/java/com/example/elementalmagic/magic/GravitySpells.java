@@ -70,8 +70,9 @@ public final class GravitySpells {
             }
             level.sendParticles(ParticleTypes.GUST,
                     player.getX(), player.getY() + 0.5, player.getZ(), 6, 2, 0.5, 2, 0.1);
-            level.playSound(null, player.blockPosition(),
-                    SoundEvents.GENERIC_EXPLODE, SoundSource.PLAYERS, 1.0f, 0.7f);
+                        level.playSound(null, player.blockPosition(),
+                    SoundEvents.GENERIC_EXPLODE.value(), SoundSource.PLAYERS, 1.0f, 0.7f);
+
             return true;
         });
 
