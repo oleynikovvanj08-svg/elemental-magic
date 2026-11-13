@@ -37,6 +37,11 @@ public enum School {
     // Все стихии
     FROST(Element.ELEMENTAL, "frost"),
     FUSION(Element.ELEMENTAL, "fusion"),
+    // Новые школы: лёд, гравитация, яд, призыв
+    GLACIER(Element.ICE, "glacier"),
+    GRAVITY(Element.GRAVITY, "gravity"),
+    POISON(Element.POISON, "poison"),
+    SUMMONING(Element.SUMMONING, "summoning"),
     // Время
     ACCELERATION(Element.TIME, "acceleration"),
     STASIS(Element.TIME, "stasis"),
