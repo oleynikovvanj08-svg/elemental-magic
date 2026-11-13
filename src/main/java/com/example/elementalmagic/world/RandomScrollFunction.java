@@ -1,10 +1,9 @@
 package com.example.elementalmagic.world;
 
 import com.example.elementalmagic.ModRegistry;
-import com.example.elementalmagic.item.ScrollItem;
+import com.example.elementalmagic.ScrollItem;
 import com.example.elementalmagic.magic.Element;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.core.registries.Registries;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.functions.LootItemFunction;
