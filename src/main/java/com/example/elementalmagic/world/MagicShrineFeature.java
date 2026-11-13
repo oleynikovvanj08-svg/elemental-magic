@@ -9,7 +9,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ChestBlock;
-import net.minecraft.world.level.block.entity.RandomizableContainer;
+import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
@@ -72,7 +72,7 @@ public class MagicShrineFeature extends Feature<NoneFeatureConfiguration> {
         BlockState chest = Blocks.CHEST.defaultBlockState()
                 .setValue(ChestBlock.FACING, Direction.Plane.HORIZONTAL.getRandomDirection(random));
         level.setBlock(base, chest, 2);
-        if (level.getBlockEntity(base) instanceof RandomizableContainer container) {
+        if (level.getBlockEntity(base) instanceof BaseContainerBlockEntity container) {
             container.setLootTable(ResourceKey.create(Registries.LOOT_TABLE,
                     ResourceLocation.fromNamespaceAndPath("elementalmagic", "chests/magic_shrine")),
                     random.nextLong());
