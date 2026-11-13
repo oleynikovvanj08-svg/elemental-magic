@@ -3,6 +3,8 @@ package com.example.elementalmagic;
 import com.example.elementalmagic.entity.ModEntities;
 import com.example.elementalmagic.magic.Element;
 import com.example.elementalmagic.magic.Spell;
+import com.example.elementalmagic.world.MagicShrineFeature;
+import com.example.elementalmagic.world.RandomScrollFunction;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
@@ -23,7 +25,9 @@ import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.storage.loot.functions.LootItemFunctionType;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.registries.DeferredBlock;
@@ -54,6 +58,10 @@ public final class ModRegistry {
             DeferredRegister.create(Registries.POTION, MagicMod.MODID);
     private static final DeferredRegister<CreativeModeTab> TABS =
             DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MagicMod.MODID);
+    private static final DeferredRegister<Feature<?>> FEATURES =
+            DeferredRegister.create(Registries.FEATURE, MagicMod.MODID);
+    private static final DeferredRegister<LootItemFunctionType<?>> LOOT_FUNCTIONS =
+            DeferredRegister.create(Registries.LOOT_FUNCTION_TYPE, MagicMod.MODID);
 
     public static final List<ArmorItem.Type> ARMOR_TYPES = List.of(
             ArmorItem.Type.HELMET, ArmorItem.Type.CHESTPLATE, ArmorItem.Type.LEGGINGS, ArmorItem.Type.BOOTS);
@@ -115,6 +123,13 @@ public final class ModRegistry {
                     .lightLevel(state -> 7)));
     public static final DeferredItem<BlockItem> MAGIC_TABLE_ITEM =
             ITEMS.registerSimpleBlockItem("magic_table", MAGIC_TABLE);
+
+    public static final DeferredHolder<Feature<?>, Feature<?>> MAGIC_SHRINE_FEATURE =
+            FEATURES.register("magic_shrine", MagicShrineFeature::new);
+
+    public static final Supplier<LootItemFunctionType<?>> RANDOM_SCROLL =
+            LOOT_FUNCTIONS.register("random_scroll",
+                    () -> new LootItemFunctionType<>(RandomScrollFunction.CODEC));
 
     public static final Map<Element, DeferredItem<SpellbookItem>> BOOKS = new EnumMap<>(Element.class);
     public static final Map<Element, DeferredHolder<ArmorMaterial, ArmorMaterial>> ARMOR_MATS = new EnumMap<>(Element.class);
@@ -229,6 +244,8 @@ public final class ModRegistry {
         EFFECTS.register(bus);
         POTIONS.register(bus);
         TABS.register(bus);
+        FEATURES.register(bus);
+        LOOT_FUNCTIONS.register(bus);
         ModEntities.register(bus);
     }
 
