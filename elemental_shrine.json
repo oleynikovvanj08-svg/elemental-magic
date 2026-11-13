@@ -1,0 +1,7 @@
+{
+  "type": "elementalmagic:elemental_shrine",
+  "biomes": "#elementalmagic:has_elemental_shrine",
+  "step": "surface_structures",
+  "spawn_overrides": {},
+  "terrain_adaptation": "none"
+}
