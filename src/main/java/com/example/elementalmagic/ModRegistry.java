@@ -124,8 +124,6 @@ public final class ModRegistry {
     public static final DeferredItem<BlockItem> MAGIC_TABLE_ITEM =
             ITEMS.registerSimpleBlockItem("magic_table", MAGIC_TABLE);
 
-    public static final DeferredHolder<Feature<?>, Feature<?>> MAGIC_SHRINE_FEATURE =
-            FEATURES.register("magic_shrine", MagicShrineFeature::new);
 
     public static final Supplier<LootItemFunctionType<?>> RANDOM_SCROLL =
             LOOT_FUNCTIONS.register("random_scroll",
