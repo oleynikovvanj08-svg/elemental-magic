@@ -9,8 +9,8 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.phys.*;
 
 import java.util.List;
 
@@ -18,7 +18,7 @@ public final class PoisonSpells {
 
     static void init() {
         // 1. Ядовитый выстрел
-        Spells.reg("poison_bolt", new School("poison", Element.POISON), 10, 40, (level, player) -> {
+        Spells.reg("poison_bolt", School.POISON, 10, 40, (level, player) -> {
             LivingEntity target = rayTarget(player, 15);
             if (target == null) return false;
             target.hurt(player.damageSources().indirectMagic(player, player), 3.0f);
@@ -31,7 +31,7 @@ public final class PoisonSpells {
         });
 
         // 2. Токсичное облако в точке взгляда
-        Spells.reg("toxic_cloud", new School("poison", Element.POISON), 30, 300, (level, player) -> {
+        Spells.reg("toxic_cloud", School.POISON, 30, 300, (level, player) -> {
             Vec3 point = lookPoint(player, 10);
             List<Entity> targets = level.getEntities(player,
                     new AABB(point, point).inflate(4), e -> e instanceof LivingEntity && e.isAlive());
@@ -48,7 +48,7 @@ public final class PoisonSpells {
         });
 
         // 3. Ядовитая аура вокруг игрока
-        Spells.reg("venom_aura", new School("poison", Element.POISON), 25, 400, (level, player) -> {
+        Spells.reg("venom_aura", School.POISON, 25, 400, (level, player) -> {
             List<Entity> targets = level.getEntities(player,
                     player.getBoundingBox().inflate(3.5), e -> e instanceof LivingEntity && e.isAlive());
             if (targets.isEmpty()) return false;
@@ -65,7 +65,7 @@ public final class PoisonSpells {
         });
 
         // 4. Разложение: сильный длительный яд по цели
-        Spells.reg("corruption", new School("poison", Element.POISON), 35, 300, (level, player) -> {
+        Spells.reg("corruption", School.POISON, 35, 300, (level, player) -> {
             LivingEntity target = nearest(player, 12);
             if (target == null) return false;
             target.hurt(player.damageSources().indirectMagic(player, player), 4.0f);
@@ -78,7 +78,7 @@ public final class PoisonSpells {
         });
 
         // 5. Очищение: снимает яд и иссушение с себя
-        Spells.reg("cleansing", new School("poison", Element.POISON), 20, 400, (level, player) -> {
+        Spells.reg("cleansing", School.POISON, 20, 400, (level, player) -> {
             boolean hadPoison = player.removeEffect(MobEffects.POISON);
             boolean hadWither = player.removeEffect(MobEffects.WITHER);
             if (!hadPoison && !hadWither) return false;
@@ -91,7 +91,7 @@ public final class PoisonSpells {
         });
     }
 
-    // ===== Вспомогательные методы (те же, что в IceSpells) =====
+    // ===== Вспомогательные методы =====
 
     private static LivingEntity rayTarget(Player player, double maxDist) {
         Vec3 start = player.getEyePosition();
