@@ -1,5 +1,5 @@
 package com.example.elementalmagic;
-
+com.example.elementalmagic.worldgen.ModStructures.register(modBus);
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 
