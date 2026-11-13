@@ -1,19 +1,24 @@
 package com.example.elementalmagic.world;
 
+import com.example.elementalmagic.ModRegistry;
+import com.example.elementalmagic.ScrollItem;
+import com.example.elementalmagic.magic.Element;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.Container;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ChestBlock;
-import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
+import net.neoforged.neoforge.registries.DeferredItem;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /** Каменный алтарь с сундуком свитков. Ставится feature'ом в обычных биомах. */
 public class MagicShrineFeature extends Feature<NoneFeatureConfiguration> {
@@ -68,14 +73,23 @@ public class MagicShrineFeature extends Feature<NoneFeatureConfiguration> {
         // Фонарь в углу внутри
         level.setBlock(base.offset(1, 0, -1), Blocks.LANTERN.defaultBlockState(), 2);
 
-        // Сундук со свитками
+        // Сундук и его содержимое: мана + 2-4 случайных свитка обычных школ
         BlockState chest = Blocks.CHEST.defaultBlockState()
                 .setValue(ChestBlock.FACING, Direction.Plane.HORIZONTAL.getRandomDirection(random));
         level.setBlock(base, chest, 2);
-        if (level.getBlockEntity(base) instanceof BaseContainerBlockEntity container) {
-            container.setLootTable(ResourceKey.create(Registries.LOOT_TABLE,
-                    ResourceLocation.fromNamespaceAndPath("elementalmagic", "chests/magic_shrine")),
-                    random.nextLong());
+        if (level.getBlockEntity(base) instanceof Container container) {
+            List<DeferredItem<ScrollItem>> pool = new ArrayList<>();
+            for (Element e : Element.values()) {
+                if (e.bossOnly) continue;
+                pool.addAll(ModRegistry.SCROLLS.get(e));
+            }
+            // Слот 0 — мана
+            container.setItem(0, new ItemStack(ModRegistry.MANA_ITEM.get(), 2 + random.nextInt(5)));
+            // Слоты 1..N — свитки
+            int scrolls = Math.min(2 + random.nextInt(3), container.getContainerSize() - 1);
+            for (int i = 1; i <= scrolls; i++) {
+                container.setItem(i, new ItemStack(pool.get(random.nextInt(pool.size())).get()));
+            }
         }
         return true;
     }
