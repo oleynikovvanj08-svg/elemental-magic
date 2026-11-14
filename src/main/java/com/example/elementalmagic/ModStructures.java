@@ -15,14 +15,26 @@ public final class ModStructures {
     private static final DeferredRegister<StructurePieceType> PIECES =
             DeferredRegister.create(Registries.STRUCTURE_PIECE, MagicMod.MODID);
 
+    // ---- Стихийное святилище ----
     public static final DeferredHolder<StructureType<?>, StructureType<ShrineStructure>> SHRINE =
             TYPES.register("elemental_shrine", ModStructures::shrineType);
 
     public static final DeferredHolder<StructurePieceType, StructurePieceType> SHRINE_PIECE =
             PIECES.register("elemental_shrine", () -> (StructurePieceType) ShrinePiece::new);
 
+    // ---- Замок Хранителя времени ----
+    public static final DeferredHolder<StructureType<?>, StructureType<TimeCastleStructure>> TIME_CASTLE =
+            TYPES.register("time_castle", ModStructures::timeCastleType);
+
+    public static final DeferredHolder<StructurePieceType, StructurePieceType> TIME_CASTLE_PIECE =
+            PIECES.register("time_castle", () -> (StructurePieceType) TimeCastlePiece::new);
+
     private static StructureType<ShrineStructure> shrineType() {
         return () -> ShrineStructure.CODEC;
+    }
+
+    private static StructureType<TimeCastleStructure> timeCastleType() {
+        return () -> TimeCastleStructure.CODEC;
     }
 
     public static void register(IEventBus bus) {
