@@ -1,7 +1,14 @@
 {
-  "type": "elementalmagic:elemental_shrine",
-  "biomes": "#elementalmagic:has_elemental_shrine",
-  "step": "surface_structures",
-  "spawn_overrides": {},
-  "terrain_adaptation": "none"
+  "structures": [
+    {
+      "structure": "elementalmagic:elemental_shrine",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 20,
+    "separation": 8,
+    "salt": 1470258369
+  }
 }
