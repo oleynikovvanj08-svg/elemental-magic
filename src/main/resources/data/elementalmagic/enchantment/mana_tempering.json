@@ -1,0 +1,10 @@
+{
+  "supported_items": "#elementalmagic:magic_swords",
+  "primary_items": "#elementalmagic:magic_swords",
+  "weight": 5,
+  "max_level": 4,
+  "min_cost": { "base": 3, "per_level_above_first": 12 },
+  "max_cost": { "base": 25, "per_level_above_first": 18 },
+  "anvil_cost": 6,
+  "slots": ["mainhand"]
+}
