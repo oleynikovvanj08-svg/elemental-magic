@@ -2,14 +2,16 @@ package com.example.elementalmagic.magic;
 
 import com.example.elementalmagic.Mana;
 import com.example.elementalmagic.ModRegistry;
-import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.neoforge.event.TickEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /** Действия зачарований: макс. мана и регенерация для брони, урон заклинаний для мечей. */
 public final class ManaEnchantHandler {
@@ -23,9 +25,8 @@ public final class ManaEnchantHandler {
 
     // ----- Броня: восстановление маны раз в секунду -----
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) return;
-        Player player = event.entity;
+    public static void onPlayerTick(PlayerTickEvent.Post event) {
+        Player player = event.getEntity();
         if (player.level().isClientSide) return;
         if (player.tickCount % 20 != 0) return; // раз в секунду
 
@@ -45,7 +46,8 @@ public final class ManaEnchantHandler {
     @SubscribeEvent
     public static void onIncomingDamage(LivingIncomingDamageEvent event) {
         // Усиливаем только магический урон, а не обычные удары оружием
-        if (!event.getSource().is(DamageTypeTags.IS_MAGIC)) return;
+        if (!event.getSource().is(DamageTypes.MAGIC)
+                && !event.getSource().is(DamageTypes.INDIRECT_MAGIC)) return;
 
         if (event.getSource().getEntity() instanceof Player player) {
             ItemStack weapon = player.getMainHandItem();
@@ -72,7 +74,7 @@ public final class ManaEnchantHandler {
     }
 
     private static int sumLevels(Player player, ResourceKey<Enchantment> enchant,
-                                 net.minecraft.core.HolderLookup.Provider registries) {
+                                 HolderLookup.Provider registries) {
         int total = 0;
         for (EquipmentSlot slot : EquipmentSlot.values()) {
             total += ModEnchantments.levelOn(player.getItemBySlot(slot), enchant, registries);
