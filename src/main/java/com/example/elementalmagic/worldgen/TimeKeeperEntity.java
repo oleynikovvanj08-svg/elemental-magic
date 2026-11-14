@@ -41,6 +41,8 @@ import net.minecraft.world.phys.Vec3;
  *  2. Замедление времени: игроки рядом получают замедление и усталость.
  *  3. Временной скачок: появляется за спиной цели и бьёт.
  *  4. Разлом (когда здоровья меньше половины): волна урона вокруг босса с отбрасыванием.
+ *  5. Охота: если цель не видна 3 секунды (спряталась в комнате, замуровалась), босс телепортируется
+ *     на ближайшее свободное место рядом с ней и бьёт Разломом сквозь стены.
  */
 public class TimeKeeperEntity extends Monster {
     // ===== Настройки баланса =====
@@ -50,6 +52,11 @@ public class TimeKeeperEntity extends Monster {
     private static final double BOLT_MIN_DISTANCE = 5;      // ближе босс бьёт в ближнем бою
     private static final double BOLT_MAX_DISTANCE = 28;
     private static final double BOLT_RANGE = 32;
+
+    private static final int HIDE_TICKS = 60;               // сколько цель может прятаться до телепорта
+    private static final int HUNT_COOLDOWN_TICKS = 100;
+    private static final double HUNT_MAX_DISTANCE = 48;
+    private static final int HUNT_SEARCH_RADIUS = 6;
 
     private final ServerBossEvent bossEvent = new ServerBossEvent(getDisplayName(),
             BossEvent.BossBarColor.YELLOW, BossEvent.BossBarOverlay.NOTCHED_10);
@@ -61,6 +68,9 @@ public class TimeKeeperEntity extends Monster {
 
     private int chargeTicks = 0;
     private Vec3 aimPoint;
+
+    private int hiddenTicks = 0;
+    private int huntCooldown = 0;
 
     public TimeKeeperEntity(EntityType<? extends TimeKeeperEntity> type, Level level) {
         super(type, level);
@@ -85,7 +95,8 @@ public class TimeKeeperEntity extends Monster {
         goalSelector.addGoal(6, new LookAtPlayerGoal(this, Player.class, 16f));
         goalSelector.addGoal(7, new RandomLookAroundGoal(this));
         targetSelector.addGoal(1, new HurtByTargetGoal(this));
-        targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
+        // mustSee = false: босс не теряет игрока, спрятавшегося за стеной
+        targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, false));
     }
 
     // ===== Босс-бар =====
@@ -132,6 +143,17 @@ public class TimeKeeperEntity extends Monster {
             return;
         }
         boolean enraged = getHealth() < getMaxHealth() * 0.5f;
+
+        // Охота: цель не видна несколько секунд, поэтому босс идёт к ней сам
+        if (huntCooldown > 0) huntCooldown--;
+        if (hasLineOfSight(target)) {
+            hiddenTicks = 0;
+        } else if (++hiddenTicks >= HIDE_TICKS && huntCooldown <= 0
+                && distanceToSqr(target) < HUNT_MAX_DISTANCE * HUNT_MAX_DISTANCE) {
+            huntTarget(serverLevel, target);
+            hiddenTicks = 0;
+            huntCooldown = HUNT_COOLDOWN_TICKS;
+        }
 
         // Временной импульс: зарядка, затем выстрел по запомненной точке
         if (chargeTicks > 0) {
@@ -212,6 +234,45 @@ public class TimeKeeperEntity extends Monster {
             Vec3 pt = from.add(delta.scale(i / (double) n));
             level.sendParticles(type, pt.x, pt.y, pt.z, 1, 0, 0, 0, 0);
         }
+    }
+
+    // ===== Охота на скрывшегося =====
+
+    /** Телепорт к ближайшему свободному месту рядом с целью и удар сквозь стены. */
+    private void huntTarget(ServerLevel level, LivingEntity target) {
+        Vec3 spot = findFreeSpotNear(level, target.position());
+        if (spot != null) {
+            level.sendParticles(ParticleTypes.REVERSE_PORTAL, getX(), getY() + 1.5, getZ(), 40, 0.4, 0.8, 0.4, 0.05);
+            teleportTo(spot.x, spot.y, spot.z);
+            level.sendParticles(ParticleTypes.REVERSE_PORTAL, getX(), getY() + 1.5, getZ(), 40, 0.4, 0.8, 0.4, 0.05);
+            playSound(SoundEvents.ENDERMAN_TELEPORT, 1.5f, 0.5f);
+        }
+        // Разлом бьёт по площади и не зависит от стен: замурованному игроку тоже достанется
+        if (distanceToSqr(target) < 49) rift(level);
+    }
+
+    /**
+     * Ближайшее к центру место, где босс помещается (ему нужно 3 блока высоты) и есть пол.
+     * Кольца ищутся от центра наружу, поэтому находится самое близкое.
+     */
+    private Vec3 findFreeSpotNear(ServerLevel level, Vec3 center) {
+        double baseX = Math.floor(center.x) + 0.5;
+        double baseY = Math.floor(center.y);
+        double baseZ = Math.floor(center.z) + 0.5;
+        for (int r = 1; r <= HUNT_SEARCH_RADIUS; r++) {
+            for (int dx = -r; dx <= r; dx++) {
+                for (int dz = -r; dz <= r; dz++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dz)) != r) continue;
+                    for (int dy : new int[]{0, 1, -1}) {
+                        Vec3 pos = new Vec3(baseX + dx, baseY + dy, baseZ + dz);
+                        if (!level.noCollision(this, getBoundingBox().move(pos.subtract(position())))) continue;
+                        if (!level.getBlockState(net.minecraft.core.BlockPos.containing(pos).below()).blocksMotion()) continue;
+                        return pos;
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     // ===== Остальные способности =====
