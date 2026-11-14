@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "#minecraft:armor",
+    "elementalmagic:fire_helmet", "elementalmagic:fire_chestplate", "elementalmagic:fire_leggings", "elementalmagic:fire_boots",
+    "elementalmagic:water_helmet", "elementalmagic:water_chestplate", "elementalmagic:water_leggings", "elementalmagic:water_boots",
+    "elementalmagic:earth_helmet", "elementalmagic:earth_chestplate", "elementalmagic:earth_leggings", "elementalmagic:earth_boots",
+    "elementalmagic:air_helmet", "elementalmagic:air_chestplate", "elementalmagic:air_leggings", "elementalmagic:air_boots",
+    "elementalmagic:lightning_helmet", "elementalmagic:lightning_chestplate", "elementalmagic:lightning_leggings", "elementalmagic:lightning_boots",
+    "elementalmagic:light_helmet", "elementalmagic:light_chestplate", "elementalmagic:light_leggings", "elementalmagic:light_boots",
+    "elementalmagic:darkness_helmet", "elementalmagic:darkness_chestplate", "elementalmagic:darkness_leggings", "elementalmagic:darkness_boots"
+  ]
+}
