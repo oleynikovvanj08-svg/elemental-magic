@@ -11,6 +11,7 @@ public class MagicMod {
 
     public MagicMod(IEventBus modBus) {
         ModRegistry.register(modBus);
+        NeoForge.EVENT_BUS.register(ManaEnchantHandler.class);
         ModStructures.register(modBus);
         ModBosses.register(modBus);
     }
