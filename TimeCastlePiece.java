@@ -121,8 +121,8 @@ public class TimeCastlePiece extends ScatteredFeaturePiece {
                 placeBlock(level, brick, x0, 14, z0 + i, box);
                 placeBlock(level, brick, x0 + 6, 14, z0 + i, box);
             }
-            // Дверь во двор
-            generateAirBox(level, box, cx, 1, doorZ, cx, 2, doorZ);
+            // Дверь во двор 3x4: босс ростом 2.9 блока должен проходить, иначе башня становится убежищем
+            generateAirBox(level, box, cx - 1, 1, doorZ, cx + 1, 4, doorZ);
             // Сундук лицом к двери и фонарь рядом
             Direction facing = t[5] == 0 ? Direction.SOUTH : Direction.NORTH;
             placeBlock(level, Blocks.CHEST.defaultBlockState().setValue(ChestBlock.FACING, facing),
