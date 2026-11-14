@@ -4,6 +4,7 @@ import com.example.elementalmagic.boss.ModBosses;
 import com.example.elementalmagic.worldgen.ModStructures;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.common.NeoForge;
 
 @Mod(MagicMod.MODID)
 public class MagicMod {
