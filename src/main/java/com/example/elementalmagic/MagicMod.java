@@ -13,7 +13,7 @@ public class MagicMod {
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public MagicMod(IEventBus modEventBus) {
-        // Регистрация всех реестров мода (блоки, предметы, сущности, data-компоненты и т. д.)
+        // Регистрация всех реестров мода: предметы, блоки, сущности, биом-модификаторы и т. д.
         ModRegistry.register(modEventBus);
 
         // Обработчики зачарований: регенерация/макс. мана брони и усиление заклинаний мечей
