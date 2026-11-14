@@ -1,5 +1,6 @@
 package com.example.elementalmagic;
 
+import com.example.elementalmagic.boss.ModBosses;
 import com.example.elementalmagic.magic.ManaEnchantHandler;
 import com.mojang.logging.LogUtils;
 import net.neoforged.bus.api.IEventBus;
@@ -15,6 +16,9 @@ public class MagicMod {
     public MagicMod(IEventBus modEventBus) {
         // Регистрация всех реестров мода: предметы, блоки, сущности, биом-модификаторы и т. д.
         ModRegistry.register(modEventBus);
+
+        // Боссы: сущности и атрибуты живут в ModBosses
+        ModBosses.register(modEventBus);
 
         // Обработчики зачарований: регенерация/макс. мана брони и усиление заклинаний мечей
         NeoForge.EVENT_BUS.register(ManaEnchantHandler.class);
