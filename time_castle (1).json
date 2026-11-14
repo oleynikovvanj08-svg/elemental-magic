@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "elementalmagic:time_castle",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 40,
+    "separation": 16,
+    "salt": 1470258370
+  }
+}
