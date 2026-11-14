@@ -1,7 +1,6 @@
 package com.example.elementalmagic.entity;
 
 import com.example.elementalmagic.MagicMod;
-import com.example.elementalmagic.boss.TimeKeeperEntity;
 import com.example.elementalmagic.magic.Element;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.registries.Registries;
@@ -77,15 +76,6 @@ public final class ModEntities {
         return ADJ.getOrDefault(e.id, e.id) + " " + mat;
     }
 
-    /** Босс «Хранитель времени» — единственная сущность вне цикла стихий. */
-    public static final DeferredHolder<EntityType<?>, EntityType<TimeKeeperEntity>> TIME_KEEPER =
-            ENTITIES.register("time_keeper", () -> EntityType.Builder
-                    .of(TimeKeeperEntity::new, MobCategory.MONSTER)
-                    .sized(0.8f, 2.2f)
-                    .clientTrackingRange(10)
-                    .fireImmune()
-                    .build("time_keeper"));
-
     static {
         BIOME_MODIFIERS.register("elemental_spawns", () -> ElementalSpawns.CODEC);
 
@@ -133,7 +123,6 @@ public final class ModEntities {
         for (MobEntry m : ALL) {
             event.put(m.type().get(), ElementalMob.createAttributes(m.element(), m.kind()).build());
         }
-        event.put(TIME_KEEPER.get(), TimeKeeperEntity.createAttributes().build());
     }
 
     /** Спавн как у обычных монстров: на земле, в темноте. Биомы задаются в ElementalSpawns. */
