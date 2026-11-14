@@ -1,6 +1,7 @@
 package com.example.elementalmagic.boss;
 
 import com.example.elementalmagic.magic.Element;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerBossEvent;
@@ -25,23 +26,41 @@ import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
 /**
  * Хранитель времени: босс стихии «Время».
  * Способности:
- *  1. Замедление времени: игроки рядом получают замедление и усталость.
- *  2. Временной скачок: появляется за спиной цели и бьёт.
- *  3. Разлом (когда здоровья меньше половины): волна урона вокруг босса с отбрасыванием.
+ *  1. Временной импульс: дальний луч с отбрасыванием. Бьёт, как только есть прямая видимость,
+ *     поэтому от босса нельзя спрятаться в башне или отстроиться вверх.
+ *  2. Замедление времени: игроки рядом получают замедление и усталость.
+ *  3. Временной скачок: появляется за спиной цели и бьёт.
+ *  4. Разлом (когда здоровья меньше половины): волна урона вокруг босса с отбрасыванием.
  */
 public class TimeKeeperEntity extends Monster {
+    // ===== Настройки баланса =====
+    private static final float BOLT_DAMAGE = 10f;
+    private static final double BOLT_KNOCKBACK = 1.8;
+    private static final int BOLT_CHARGE_TICKS = 14;        // время зарядки (даёт шанс увернуться)
+    private static final double BOLT_MIN_DISTANCE = 5;      // ближе босс бьёт в ближнем бою
+    private static final double BOLT_MAX_DISTANCE = 28;
+    private static final double BOLT_RANGE = 32;
+
     private final ServerBossEvent bossEvent = new ServerBossEvent(getDisplayName(),
             BossEvent.BossBarColor.YELLOW, BossEvent.BossBarOverlay.NOTCHED_10);
 
     private int slowCooldown = 100;
     private int blinkCooldown = 160;
     private int riftCooldown = 200;
+    private int boltCooldown = 60;
+
+    private int chargeTicks = 0;
+    private Vec3 aimPoint;
 
     public TimeKeeperEntity(EntityType<? extends TimeKeeperEntity> type, Level level) {
         super(type, level);
@@ -108,8 +127,28 @@ public class TimeKeeperEntity extends Monster {
         bossEvent.setProgress(getHealth() / getMaxHealth());
 
         LivingEntity target = getTarget();
-        if (target == null || !target.isAlive() || !(level() instanceof ServerLevel serverLevel)) return;
+        if (target == null || !target.isAlive() || !(level() instanceof ServerLevel serverLevel)) {
+            chargeTicks = 0;
+            return;
+        }
         boolean enraged = getHealth() < getMaxHealth() * 0.5f;
+
+        // Временной импульс: зарядка, затем выстрел по запомненной точке
+        if (chargeTicks > 0) {
+            chargeTicks--;
+            telegraph(serverLevel);
+            if (chargeTicks == 0) fireBolt(serverLevel);
+        } else if (--boltCooldown <= 0) {
+            double dist = distanceToSqr(target);
+            if (dist > BOLT_MIN_DISTANCE * BOLT_MIN_DISTANCE
+                    && dist < BOLT_MAX_DISTANCE * BOLT_MAX_DISTANCE
+                    && hasLineOfSight(target)) {
+                aimPoint = target.getEyePosition();
+                chargeTicks = BOLT_CHARGE_TICKS;
+                boltCooldown = enraged ? 50 : 80;
+                playSound(SoundEvents.BEACON_ACTIVATE, 2f, 1.6f);
+            }
+        }
 
         if (--slowCooldown <= 0) {
             slowField(serverLevel);
@@ -124,6 +163,58 @@ public class TimeKeeperEntity extends Monster {
             riftCooldown = 200;
         }
     }
+
+    // ===== Временной импульс =====
+
+    /** Конец луча: по направлению к точке прицела, но не дальше первого блока. */
+    private Vec3 beamEnd(ServerLevel level, Vec3 from) {
+        Vec3 dir = aimPoint.subtract(from);
+        if (dir.lengthSqr() < 1.0E-4) dir = new Vec3(0, 0, 1);
+        Vec3 end = from.add(dir.normalize().scale(BOLT_RANGE));
+        BlockHitResult hit = level.clip(new ClipContext(from, end,
+                ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
+        return hit.getType() == HitResult.Type.MISS ? end : hit.getLocation();
+    }
+
+    /** Во время зарядки показывает линию будущего выстрела, чтобы можно было увернуться. */
+    private void telegraph(ServerLevel level) {
+        if (aimPoint == null) return;
+        Vec3 from = getEyePosition();
+        particleLine(level, from, beamEnd(level, from), ParticleTypes.ENCHANT, 1.0);
+    }
+
+    /** Выстрел: урон и сильное отбрасывание всем игрокам на линии. */
+    private void fireBolt(ServerLevel level) {
+        if (aimPoint == null) return;
+        Vec3 from = getEyePosition();
+        Vec3 end = beamEnd(level, from);
+        Vec3 flat = new Vec3(end.x - from.x, 0, end.z - from.z);
+
+        for (Player p : level.getEntitiesOfClass(Player.class, new AABB(from, end).inflate(2),
+                pl -> pl.isAlive() && !pl.isSpectator() && !pl.isCreative())) {
+            if (p.getBoundingBox().inflate(0.6).clip(from, end).isEmpty()) continue;
+            p.hurt(damageSources().indirectMagic(this, this), BOLT_DAMAGE);
+            if (flat.lengthSqr() > 1.0E-4) {
+                p.setDeltaMovement(flat.normalize().scale(BOLT_KNOCKBACK).add(0, 0.5, 0));
+                p.hurtMarked = true;
+            }
+        }
+
+        particleLine(level, from, end, ParticleTypes.END_ROD, 0.4);
+        playSound(SoundEvents.ENDER_DRAGON_GROWL, 1.5f, 1.4f);
+        aimPoint = null;
+    }
+
+    private static void particleLine(ServerLevel level, Vec3 from, Vec3 to, ParticleOptions type, double step) {
+        Vec3 delta = to.subtract(from);
+        int n = Math.max(1, (int) (delta.length() / step));
+        for (int i = 0; i <= n; i++) {
+            Vec3 pt = from.add(delta.scale(i / (double) n));
+            level.sendParticles(type, pt.x, pt.y, pt.z, 1, 0, 0, 0, 0);
+        }
+    }
+
+    // ===== Остальные способности =====
 
     /** Замедление времени: игроки в радиусе 10 блоков замедлены на 4 секунды. */
     private void slowField(ServerLevel level) {
@@ -169,7 +260,7 @@ public class TimeKeeperEntity extends Monster {
         playSound(SoundEvents.WITHER_BREAK_BLOCK, 1.5f, 0.6f);
     }
 
-    private void ring(ServerLevel level, double radius, net.minecraft.core.particles.ParticleOptions type) {
+    private void ring(ServerLevel level, double radius, ParticleOptions type) {
         int n = (int) (radius * 10);
         for (int i = 0; i < n; i++) {
             double a = i * Math.PI * 2 / n;
