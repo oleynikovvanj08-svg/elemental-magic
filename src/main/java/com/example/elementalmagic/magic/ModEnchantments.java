@@ -2,7 +2,7 @@ package com.example.elementalmagic.magic;
 
 import com.example.elementalmagic.MagicMod;
 import net.minecraft.core.Holder;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -23,9 +23,10 @@ public final class ModEnchantments {
     }
 
     /** Уровень зачарования на предмете (0 — зачарования нет). */
-    public static int levelOn(ItemStack stack, ResourceKey<Enchantment> enchant) {
+    public static int levelOn(ItemStack stack, ResourceKey<Enchantment> enchant,
+                              HolderLookup.Provider registries) {
         if (stack.isEmpty()) return 0;
-        return BuiltInRegistries.ENCHANTMENT.getHolder(enchant)
+        return registries.lookupOrThrow(Registries.ENCHANTMENT).get(enchant)
                 .map(holder -> EnchantmentHelper.getItemEnchantmentLevel(holder, stack))
                 .orElse(0);
     }
