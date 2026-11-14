@@ -133,5 +133,6 @@
   "spell.elementalmagic.sword_life_devour": "Пожирание жизни",
   "spell.elementalmagic.sword_life_devour.desc": "Наносит урон цели и лечит тебя на половину этого урона.",
   "spell.elementalmagic.sword_rot_shroud": "Покров гнили",
+  "entity.elementalmagic.time_keeper": "Хранитель времени",
   "spell.elementalmagic.sword_rot_shroud.desc": "8 секунд аура гнили иссушает и ранит врагов, которые подошли близко."
 }
