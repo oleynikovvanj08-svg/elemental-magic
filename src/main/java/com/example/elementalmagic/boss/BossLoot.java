@@ -33,7 +33,9 @@ public final class BossLoot {
             out.add(new ItemStack(ModRegistry.SWORDS.get(element).get()));
         }
 
-        if (random.nextFloat() < STAFF_CHANCE && ModRegistry.STAVES.containsKey(element)) {
+        // Посох: с шансом, а если у стихии нет меча (лава, тени), то гарантированно
+        boolean hasSword = ModRegistry.SWORDS.containsKey(element);
+        if ((!hasSword || random.nextFloat() < STAFF_CHANCE) && ModRegistry.STAVES.containsKey(element)) {
             out.add(new ItemStack(ModRegistry.STAVES.get(element).get()));
         }
 
