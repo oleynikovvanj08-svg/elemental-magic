@@ -1,0 +1,12 @@
+{
+  "replace": false,
+  "values": [
+    "elementalmagic:fire_sword",
+    "elementalmagic:water_sword",
+    "elementalmagic:earth_sword",
+    "elementalmagic:air_sword",
+    "elementalmagic:lightning_sword",
+    "elementalmagic:light_sword",
+    "elementalmagic:darkness_sword"
+  ]
+}
