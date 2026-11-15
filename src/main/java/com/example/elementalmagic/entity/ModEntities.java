@@ -12,11 +12,11 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.common.DeferredSpawnEggItem;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 import net.neoforged.neoforge.event.entity.RegisterSpawnPlacementsEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -149,12 +149,12 @@ public final class ModEntities {
     }
 
     /** Яйцо призыва с русским названием без ru_ru.json. */
-    public static final class NamedSpawnEgg extends DeferredSpawnEggItem {
+    public static final class NamedSpawnEgg extends SpawnEggItem {
         private final String fallbackName;
 
         public NamedSpawnEgg(Supplier<? extends EntityType<? extends Mob>> type, int background, int highlight,
                              String fallbackName, Properties props) {
-            super(type, background, highlight, props);
+            super(type.get(), background, highlight, props);
             this.fallbackName = fallbackName;
         }
 
