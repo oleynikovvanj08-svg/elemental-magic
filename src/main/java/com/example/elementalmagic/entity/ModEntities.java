@@ -37,6 +37,18 @@ public final class ModEntities {
             DeferredRegister.create(Registries.ENTITY_TYPE, MagicMod.MODID);
     private static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MagicMod.MODID);
     private static final DeferredRegister<MapCodec<? extends BiomeModifier>> BIOME_MODIFIERS =
+    DeferredRegister.create(NeoForgeRegistries.Keys.BIOME_MODIFIER_SERIALIZERS, MagicMod.MODID);
+    
+         /** Сериализатор biome_modifier'а, на который ссылается data/elementalmagic/neoforge/biome_modifier/eleme
+         +ntal_mobs.json. */
+    public static final DeferredHolder<MapCodec<? extends BiomeModifier>, MapCodec<? extends BiomeModifier>>
+    ELEMENTAL_SPAWNS =
+    BIOME_MODIFIERS.register("elemental_spawns", () -> ElementalSpawns.CODEC);
+    
+            /** Моб, материал с него и яйцо призыва. id моба вида fire_golem. */
+            public record MobEntry(Element element, ElementalMob.Kind kind, String id,
+                                   DeferredHolder<EntityType<?>, EntityType<ElementalMob>> type,
+    private static final DeferredRegister<MapCodec<? extends BiomeModifier>> BIOME_MODIFIERS =
             DeferredRegister.create(NeoForgeRegistries.Keys.BIOME_MODIFIER_SERIALIZERS, MagicMod.MODID);
 
     /** Моб, материал с него и яйцо призыва. id моба вида fire_golem. */
