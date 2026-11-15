@@ -1,6 +1,6 @@
 {
   "type": "neoforge:add_spawns",
-  "biomes": ["minecraft:beach", "minecraft:river", "minecraft:swamp"],
+  "biomes": "#minecraft:is_river",
   "spawners": [
     {
       "type": "elementalmagic:water_wisp",
