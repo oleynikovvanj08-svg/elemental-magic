@@ -77,7 +77,6 @@ public final class ModEntities {
     }
 
     static {
-        BIOME_MODIFIERS.register("elemental_spawns", () -> ElementalSpawns.CODEC);
 
         for (Element e : Element.values()) {
             for (ElementalMob.Kind k : ElementalMob.Kind.values()) {
