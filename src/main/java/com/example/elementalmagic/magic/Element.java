@@ -26,6 +26,7 @@ public enum Element {
     STARS("stars", 0xB0C4FF, "Звёзды", true),
     DARK_NATURE("dark_nature", 0x556B2F, "Тёмная природа", true),
     SHADOW("shadow", 0x4B4B6E, "Тени", true);
+    LAVA("lava", 0xFF6A00, "Лава", true);
 
     /** Бонус к урону заклинаний своей стихии. */
     public static final float OWN_BONUS = 1.10f;
