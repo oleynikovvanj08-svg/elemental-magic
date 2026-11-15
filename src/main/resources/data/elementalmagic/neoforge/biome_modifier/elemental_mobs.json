@@ -1,3 +1,4 @@
-   {
-     "type": "elementalmagic:elemental_spawns"
-   }
+{
+  "type": "elementalmagic:elemental_spawns",
+  "biomes": "#minecraft:is_overworld"
+}
