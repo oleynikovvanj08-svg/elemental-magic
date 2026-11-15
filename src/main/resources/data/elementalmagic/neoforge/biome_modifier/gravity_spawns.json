@@ -1,6 +1,6 @@
 {
   "type": "neoforge:add_spawns",
-  "biomes": ["minecraft:jagged_peaks", "minecraft:stony_peaks", "minecraft:frozen_peaks"],
+  "biomes": "#minecraft:is_peak",
   "spawners": [
     {
       "type": "elementalmagic:gravity_wisp",
