@@ -38,17 +38,18 @@ public final class Mana {
    max += ModEnchantments.armorLevel(p, ModEnchantments.MANA_BOOST) * MANA_BOOST_PER_LEVEL;
    return max;
    }
-
-    public static int regen(Player p) {
-        boolean hasRing = false;
-        for (ItemStack s : AccessorySlots.rings(p)) {
-            if (s.getItem() instanceof AccessoryItem) {
-                hasRing = true;
-                break;
-            }
-        }
-        return hasRing ? 2 : 1;
+public static int regen(Player p) {
+   boolean hasRing = false;
+   for (ItemStack s : AccessorySlots.rings(p)) {
+   if (s.getItem() instanceof AccessoryItem) {
+   hasRing = true;
+   break;
     }
+   }
+   int base = hasRing ? 2 : 1;
+   int bonus = ModEnchantments.armorLevel(p, ModEnchantments.MANA_RECOVERY) / MANA_RECOVERY_PER_LEVEL;
+   return base + bonus;
+   }
 
     public static int costFor(Player p, Spell spell) {
         Element e = spell.school().element;
