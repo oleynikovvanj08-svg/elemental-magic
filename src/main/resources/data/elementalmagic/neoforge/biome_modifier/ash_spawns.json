@@ -1,6 +1,6 @@
 {
   "type": "neoforge:add_spawns",
-  "biomes": ["minecraft:basalt_deltas", "minecraft:soul_sand_valley", "minecraft:savanna"],
+  "biomes": "minecraft:savanna",
   "spawners": [
     {
       "type": "elementalmagic:ash_wisp",
