@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "elementalmagic:lava_citadel",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 44,
+    "separation": 18,
+    "salt": 1470258371
+  }
+}
