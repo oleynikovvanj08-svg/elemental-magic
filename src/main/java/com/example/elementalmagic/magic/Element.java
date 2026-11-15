@@ -16,16 +16,12 @@ public enum Element {
     ASH("ash", 0x9E9E9E, "Пепел", false),
     EXPLOSION("explosion", 0xFF8C00, "Взрывная магия", false),
     ELEMENTAL("elemental", 0x40E0D0, "Все стихии", false),
-    ICE("ice", 0xA5F2F3, "Лёд", false),
-    GRAVITY("gravity", 0x6A5ACD, "Гравитация", false),
-    POISON("poison", 0x4CAF50, "Яд", false),
-    SUMMONING("summoning", 0xC8A878, "Призыв", false),
 
     // ===== Школы, которые падают только с боссов =====
     TIME("time", 0xD4AF37, "Время", true),
     STARS("stars", 0xB0C4FF, "Звёзды", true),
     DARK_NATURE("dark_nature", 0x556B2F, "Тёмная природа", true),
-    SHADOW("shadow", 0x4B4B6E, "Тени", true);
+    SHADOW("shadow", 0x4B4B6E, "Тени", true),
     LAVA("lava", 0xFF6A00, "Лава", true);
 
     /** Бонус к урону заклинаний своей стихии. */
@@ -61,9 +57,6 @@ public enum Element {
             case WATER -> FIRE;
             case NATURE -> DARK_NATURE;
             case DARK_NATURE -> NATURE;
-            case ICE -> FIRE;
-            case GRAVITY -> AIR;
-            case POISON -> NATURE;
             default -> null;
         };
     }
