@@ -1,0 +1,8 @@
+{
+  "type": "elementalmagic:boss_arena",
+  "arena": "stars",
+  "biomes": "#elementalmagic:has_star_circle",
+  "step": "surface_structures",
+  "spawn_overrides": {},
+  "terrain_adaptation": "none"
+}
