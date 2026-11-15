@@ -1,0 +1,21 @@
+{
+   "description": {
+   "translate": "enchantment.elementalmagic.mana_boost"
+    },
+   "supported_items": "#minecraft:enchantable/armor",
+   "weight": 5,
+   "max_level": 3,
+   "min_cost": {
+   "base": 10,
+   "per_level_above_first": 12
+   },
+   "max_cost": {
+   "base": 50,
+   "per_level_above_first": 12
+   },
+   "anvil_cost": 4,
+   "slots": [
+   "armor"
+   ],
+   "exclusive_set": "#elementalmagic:mana_armor_exclusive",
+   "effects": {}
