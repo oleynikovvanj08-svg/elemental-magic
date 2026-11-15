@@ -137,7 +137,7 @@ public class BlightLordEntity extends AbstractBoss {
         nearest.hurt(damageSources().indirectMagic(this, this), 6f);
         heal(12f);
         particleLine(level, nearest.position().add(0, 1, 0), position().add(0, 2, 0), ParticleTypes.SOUL, 0.4);
-        playSound(SoundEvents.SOUL_ESCAPE, 1.5f, 0.7f);
+        playSound(SoundEvents.SOUL_ESCAPE.value(), 1.5f, 0.7f);
         return true;
     }
 }
