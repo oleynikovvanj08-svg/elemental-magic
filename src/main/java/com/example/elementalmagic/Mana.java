@@ -15,6 +15,8 @@ public final class Mana {
     public static final float ARMOR_OWN = 0.05f;
     public static final float ACCESSORY_ALL = 0.10f;
     public static final float ACCESSORY_OWN = 0.20f;
+    public static final int MANA_BOOST_PER_LEVEL = 20;
+    public static final int MANA_RECOVERY_PER_LEVEL = 2;
 
     public static int get(Player p) {
         return Math.min(p.getData(ModRegistry.MANA), max(p));
