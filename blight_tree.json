@@ -1,8 +1,0 @@
-{
-  "type": "elementalmagic:boss_arena",
-  "arena": "blight",
-  "biomes": "#elementalmagic:has_blight_tree",
-  "step": "surface_structures",
-  "spawn_overrides": {},
-  "terrain_adaptation": "none"
-}
