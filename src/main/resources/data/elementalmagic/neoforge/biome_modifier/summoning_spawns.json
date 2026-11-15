@@ -1,6 +1,6 @@
 {
   "type": "neoforge:add_spawns",
-  "biomes": ["minecraft:plains", "minecraft:taiga", "minecraft:meadow"],
+  "biomes": "#minecraft:is_plains",
   "spawners": [
     {
       "type": "elementalmagic:summoning_wisp",
