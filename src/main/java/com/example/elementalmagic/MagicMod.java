@@ -14,10 +14,10 @@ package com.example.elementalmagic;
    private static final Logger LOGGER = LogUtils.getLogger();
 
    public MagicMod(IEventBus modBus) {
-   ModRegistry.register(modBus);
+    ModRegistry.register(modBus);
    ModStructures.register(modBus);
     ModBosses.register(modBus);
    ModEntities.register(modBus);
    LOGGER.info("Elemental Magic loaded");
-    }
+   }
   }
