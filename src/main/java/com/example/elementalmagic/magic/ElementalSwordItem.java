@@ -55,9 +55,9 @@ public class ElementalSwordItem extends SwordItem {
     }
 
     public float multiplier(Element spellElement) {
-        if (spellElement == element) return OWN_BONUS;
-        if (spellElement == element.opposite()) return OPPOSITE_PENALTY;
-        return OTHER_BONUS;
+   if (spellElement == element) return OWN_BONUS;
+   if (spellElement == element.opposite()) return OPPOSITE_PENALTY;
+   return OTHER_BONUS;
     }
 
     public List<Spell> spells() {
@@ -108,7 +108,10 @@ public class ElementalSwordItem extends SwordItem {
             }
 
             // Бонус меча × бонус снаряжения. Бонус уровня castWith добавляет сам
-            float mult = multiplier(spell.element()) * Mana.damageMultiplier(player, spell.element());
+            public float multiplier(ItemStack stack, Element spellElement) {
+   float mult = multiplier(spellElement);
+   int level = ModEnchantments.level(stack, ModEnchantments.holder(stack, ModEnchantments.MANA_TEMPERING));
+    return mult * (1f + TEMPERING_PER_LEVEL * level);
             if (spell.castWith(serverLevel, player, mult)) {
                 if (!free) Mana.set(player, mana - cost);
                 SpellbookItem.setCooldownOf(stack, spell, tick);
@@ -119,6 +122,11 @@ public class ElementalSwordItem extends SwordItem {
                         .withStyle(ChatFormatting.GRAY), true);
             }
         }
+            /** Прибавка к урону самого меча от «Закалки маной». */
+   public float temperingBonus(ItemStack stack) {
+   int level = ModEnchantments.level(stack, ModEnchantments.holder(stack, ModEnchantments.MANA_TEMPERING));
+   return TEMPERING_FLAT_PER_LEVEL * level;
+    }
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
     }
 
