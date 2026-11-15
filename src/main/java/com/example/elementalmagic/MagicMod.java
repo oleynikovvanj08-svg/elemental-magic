@@ -1,7 +1,6 @@
 package com.example.elementalmagic;
 
   import com.example.elementalmagic.boss.ModBosses;
-  import com.example.elementalmagic.entity.ModEntities;
   import com.example.elementalmagic.worldgen.ModStructures;
   import com.mojang.logging.LogUtils;
   import net.neoforged.bus.api.IEventBus;
@@ -10,14 +9,13 @@ package com.example.elementalmagic;
 
   @Mod(MagicMod.MODID)
   public class MagicMod {
-   public static final String MODID = "elementalmagic";
+    public static final String MODID = "elementalmagic";
    private static final Logger LOGGER = LogUtils.getLogger();
 
    public MagicMod(IEventBus modBus) {
-    ModRegistry.register(modBus);
+   ModRegistry.register(modBus);
    ModStructures.register(modBus);
-    ModBosses.register(modBus);
-   ModEntities.register(modBus);
+   ModBosses.register(modBus);
    LOGGER.info("Elemental Magic loaded");
    }
   }
