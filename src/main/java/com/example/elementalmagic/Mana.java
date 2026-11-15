@@ -25,18 +25,19 @@ public final class Mana {
     }
 
     public static int max(Player p) {
-        int max = BASE_MAX;
-        for (ItemStack s : p.getArmorSlots()) {
-            if (s.getItem() instanceof ElementalArmorItem) max += 150;
-        }
-        for (ItemStack s : AccessorySlots.amulets(p)) {
-            if (s.getItem() instanceof AccessoryItem) max += 50;
-        }
-        for (ItemStack s : AccessorySlots.rings(p)) {
-            if (s.getItem() instanceof AccessoryItem) max += 15;
-        }
-        return max;
-    }
+   int max = BASE_MAX;
+   for (ItemStack s : p.getArmorSlots()) {
+    if (s.getItem() instanceof ElementalArmorItem) max += 150;
+   }
+    for (ItemStack s : AccessorySlots.amulets(p)) {
+   if (s.getItem() instanceof AccessoryItem) max += 50;
+   }
+   for (ItemStack s : AccessorySlots.rings(p)) {
+   if (s.getItem() instanceof AccessoryItem) max += 15;
+   }
+   max += ModEnchantments.armorLevel(p, ModEnchantments.MANA_BOOST) * MANA_BOOST_PER_LEVEL;
+   return max;
+   }
 
     public static int regen(Player p) {
         boolean hasRing = false;
