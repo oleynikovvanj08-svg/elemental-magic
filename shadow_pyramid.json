@@ -1,8 +1,0 @@
-{
-  "type": "elementalmagic:boss_arena",
-  "arena": "shadow",
-  "biomes": "#elementalmagic:has_shadow_pyramid",
-  "step": "surface_structures",
-  "spawn_overrides": {},
-  "terrain_adaptation": "none"
-}
