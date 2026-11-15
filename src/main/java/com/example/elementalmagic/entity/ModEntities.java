@@ -2,7 +2,6 @@ package com.example.elementalmagic.entity;
 
 import com.example.elementalmagic.MagicMod;
 import com.example.elementalmagic.magic.Element;
-import com.mojang.serialization.MapCodec;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EntityType;
@@ -18,13 +17,11 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.DeferredSpawnEggItem;
-import net.neoforged.neoforge.common.world.BiomeModifier;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 import net.neoforged.neoforge.event.entity.RegisterSpawnPlacementsEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
-import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,8 +33,6 @@ public final class ModEntities {
     private static final DeferredRegister<EntityType<?>> ENTITIES =
             DeferredRegister.create(Registries.ENTITY_TYPE, MagicMod.MODID);
     private static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MagicMod.MODID);
-    private static final DeferredRegister<MapCodec<? extends BiomeModifier>> BIOME_MODIFIERS =
-            DeferredRegister.create(NeoForgeRegistries.Keys.BIOME_MODIFIER_SERIALIZERS, MagicMod.MODID);
 
     /** Моб, материал с него и яйцо призыва. id моба вида fire_golem. */
     public record MobEntry(Element element, ElementalMob.Kind kind, String id,
@@ -77,7 +72,6 @@ public final class ModEntities {
     }
 
     static {
-
         for (Element e : Element.values()) {
             for (ElementalMob.Kind k : ElementalMob.Kind.values()) {
                 String id = e.id + "_" + k.id;
@@ -124,7 +118,7 @@ public final class ModEntities {
         }
     }
 
-    /** Спавн как у обычных монстров: на земле, в темноте. Биомы задаются в ElementalSpawns. */
+    /** Спавн как у обычных монстров: на земле, в темноте. Биомы задаются в JSON biome_modifier. */
     @SubscribeEvent
     public static void onSpawnPlacements(RegisterSpawnPlacementsEvent event) {
         for (MobEntry m : ALL) {
@@ -137,7 +131,6 @@ public final class ModEntities {
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);
         ITEMS.register(bus);
-        BIOME_MODIFIERS.register(bus);
     }
 
     /** Материал с русским названием без ru_ru.json. */
