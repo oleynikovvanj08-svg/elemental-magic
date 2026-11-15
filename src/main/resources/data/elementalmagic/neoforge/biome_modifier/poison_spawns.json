@@ -1,6 +1,6 @@
 {
   "type": "neoforge:add_spawns",
-  "biomes": ["minecraft:swamp", "minecraft:mangrove_swamp", "minecraft:jungle"],
+  "biomes": "#minecraft:is_swamp",
   "spawners": [
     {
       "type": "elementalmagic:poison_wisp",
