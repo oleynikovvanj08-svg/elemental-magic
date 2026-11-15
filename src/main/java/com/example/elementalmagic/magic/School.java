@@ -23,7 +23,7 @@ public enum School {
     SOUND(Element.AIR, "sound"),
     WIND(Element.AIR, "wind"),
     // Огонь
-    LAVA(Element.FIRE, "lava"),
+    LAVA(Element.LAVA, "lava"),
     FLAME(Element.FIRE, "flame"),
     // Природа
     FLORA(Element.NATURE, "flora"),
