@@ -60,6 +60,8 @@ public record ElementalSpawns() implements BiomeModifier {
             case GRAVITY -> any(b, Biomes.JAGGED_PEAKS, Biomes.STONY_PEAKS, Biomes.FROZEN_PEAKS);
             case POISON -> any(b, Biomes.SWAMP, Biomes.MANGROVE_SWAMP, Biomes.JUNGLE);
             case SUMMONING -> any(b, Biomes.PLAINS, Biomes.TAIGA, Biomes.MEADOW);
+            // Лава: биомы Нижнего мира, где есть лавовые озёра
+            case LAVA -> any(b, Biomes.BASALT_DELTAS, Biomes.NETHER_WASTES, Biomes.SOUL_SAND_VALLEY);
         };
     }
 
