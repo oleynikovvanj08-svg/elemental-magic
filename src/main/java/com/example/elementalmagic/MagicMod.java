@@ -16,6 +16,9 @@ public class MagicMod {
         ModRegistry.register(modBus);
         ModStructures.register(modBus);
         ModBosses.register(modBus);
+        ModEntities.register(modBus);
+        LOGGER.info("Elemental Magic loaded");
+        ModBosses.register(modBus);
         LOGGER.info("Elemental Magic loaded");
     }
 }
