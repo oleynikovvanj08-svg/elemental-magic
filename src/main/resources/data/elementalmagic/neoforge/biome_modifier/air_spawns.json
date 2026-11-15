@@ -1,6 +1,6 @@
 {
   "type": "neoforge:add_spawns",
-  "biomes": ["minecraft:windswept_hills", "minecraft:windswept_forest", "minecraft:windswept_gravelly_hills", "minecraft:windswept_savanna"],
+  "biomes": "#minecraft:is_mountain",
   "spawners": [
     {
       "type": "elementalmagic:air_wisp",
