@@ -17,6 +17,12 @@ public enum Element {
     EXPLOSION("explosion", 0xFF8C00, "Взрывная магия", false),
     ELEMENTAL("elemental", 0x40E0D0, "Все стихии", false),
 
+    // ===== Добавленные школы (их не хватало компилятору) =====
+    ICE("ice", 0xAFEEEE, "Лёд", false),
+    GRAVITY("gravity", 0x6A5ACD, "Гравитация", false),
+    POISON("poison", 0x7CFC00, "Яд", false),
+    SUMMONING("summoning", 0xDA70D6, "Призыв", false),
+
     // ===== Школы, которые падают только с боссов =====
     TIME("time", 0xD4AF37, "Время", true),
     STARS("stars", 0xB0C4FF, "Звёзды", true),
