@@ -35,6 +35,11 @@ public class ElementalSwordItem extends SwordItem {
     public static final float OTHER_BONUS = 1.05f;
     public static final float OPPOSITE_PENALTY = 0.95f;
 
+    /** Прибавка к урону меча за уровень «Закалки маной». */
+    public static final float TEMPERING_FLAT_PER_LEVEL = 1.0f;
+    /** Прибавка к множителю урона заклинаний за уровень «Закалки маной». */
+    public static final float TEMPERING_PER_LEVEL = 0.05f;
+
     /** Стихии, у которых есть меч. Должно совпадать с SwordSpells.SWORD_ELEMENTS. */
     public static final Set<Element> HAS_SWORD = EnumSet.of(
             Element.LIGHTNING, Element.WATER, Element.EARTH, Element.AIR, Element.FIRE,
@@ -55,9 +60,9 @@ public class ElementalSwordItem extends SwordItem {
     }
 
     public float multiplier(Element spellElement) {
-   if (spellElement == element) return OWN_BONUS;
-   if (spellElement == element.opposite()) return OPPOSITE_PENALTY;
-   return OTHER_BONUS;
+        if (spellElement == element) return OWN_BONUS;
+        if (spellElement == element.opposite()) return OPPOSITE_PENALTY;
+        return OTHER_BONUS;
     }
 
     public List<Spell> spells() {
@@ -108,10 +113,7 @@ public class ElementalSwordItem extends SwordItem {
             }
 
             // Бонус меча × бонус снаряжения. Бонус уровня castWith добавляет сам
-            public float multiplier(ItemStack stack, Element spellElement) {
-   float mult = multiplier(spellElement);
-   int level = ModEnchantments.level(stack, ModEnchantments.holder(stack, ModEnchantments.MANA_TEMPERING));
-    return mult * (1f + TEMPERING_PER_LEVEL * level);
+            float mult = multiplier(stack, spell.element());
             if (spell.castWith(serverLevel, player, mult)) {
                 if (!free) Mana.set(player, mana - cost);
                 SpellbookItem.setCooldownOf(stack, spell, tick);
@@ -122,12 +124,20 @@ public class ElementalSwordItem extends SwordItem {
                         .withStyle(ChatFormatting.GRAY), true);
             }
         }
-            /** Прибавка к урону самого меча от «Закалки маной». */
-   public float temperingBonus(ItemStack stack) {
-   int level = ModEnchantments.level(stack, ModEnchantments.holder(stack, ModEnchantments.MANA_TEMPERING));
-   return TEMPERING_FLAT_PER_LEVEL * level;
-    }
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
+    }
+
+    /** Множитель урона заклинаний с учётом «Закалки маной» на мече. */
+    public float multiplier(ItemStack stack, Element spellElement) {
+        float mult = multiplier(spellElement);
+        int level = ModEnchantments.level(stack, ModEnchantments.holder(stack, ModEnchantments.MANA_TEMPERING));
+        return mult * (1f + TEMPERING_PER_LEVEL * level);
+    }
+
+    /** Прибавка к урону самого меча от «Закалки маной». */
+    public float temperingBonus(ItemStack stack) {
+        int level = ModEnchantments.level(stack, ModEnchantments.holder(stack, ModEnchantments.MANA_TEMPERING));
+        return TEMPERING_FLAT_PER_LEVEL * level;
     }
 
     /** Эффекты на удар: поджог у меча огня, Статический заряд, Раскалённый клинок, Эхо. */
