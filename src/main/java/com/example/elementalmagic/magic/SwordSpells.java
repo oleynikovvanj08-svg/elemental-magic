@@ -18,6 +18,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -100,12 +101,15 @@ public final class SwordSpells {
     /** Описание пассивного эффекта меча или null, если пассивки нет. */
     public static String passiveText(Element e) {
         return switch (e) {
-            case LIGHTNING -> "Скорость II, пока меч в руке";
+            case LIGHTNING -> "Скорость II и шанс 10% ударить молнией по врагу рядом";
             case WATER -> "Мгновенно тушит тебя при поджоге (лава всё равно ранит)";
-            case EARTH -> "Сопротивление урону, пока меч в руке";
+            case EARTH -> "Сопротивление урону и +2 брони, пока меч в руке";
             case AIR -> "Медленное падение, пока меч в руке";
             case FIRE -> "Меч всегда поджигает врагов";
             case NATURE -> "Восстанавливает голод, пока меч в руке";
+            case TIME -> "Скорость II, Спешка II. Каждый 3-й удар — эхо (50% урона через 1 сек)";
+            case STARS -> "Ночное видение. Шанс 15% вызвать падающую звезду при ударе";
+            case DARK_NATURE -> "Удары накладывают Иссушение. Шанс 25% восстановить 1 голод и 1 ману при убийстве";
             default -> null;
         };
     }
@@ -124,6 +128,11 @@ public final class SwordSpells {
             case NATURE -> {
                 if (p.tickCount % 40 == 0 && p.getFoodData().needsFood()) p.getFoodData().eat(1, 0.2f);
             }
+            case TIME -> {
+                refresh(p, MobEffects.MOVEMENT_SPEED, 1);
+                refresh(p, MobEffects.DIG_SPEED, 1);
+            }
+            case STARS -> refresh(p, MobEffects.NIGHT_VISION, 0);
             default -> { }
         }
     }
@@ -187,6 +196,17 @@ public final class SwordSpells {
         if (element == Element.FIRE) target.igniteForSeconds(5);
 
         if (element == Element.LIGHTNING) {
+            // Шанс 10% ударить молнией по случайному врагу рядом
+            if (p.getRandom().nextFloat() < 0.10f) {
+                List<LivingEntity> nearby = around(level, p, target.position(), 5);
+                if (!nearby.isEmpty()) {
+                    LivingEntity random = nearby.get(p.getRandom().nextInt(nearby.size()));
+                    lightningVisual(level, random.position());
+                    hurt(p, random, 4f);
+                    burst(level, mid(random), ParticleTypes.ELECTRIC_SPARK, 20, 1.5);
+                }
+            }
+            // Статический заряд (если активен)
             ActiveBuff buff = active(p, Buff.STATIC_CHARGE);
             if (buff != null) {
                 withDamageMultiplier(buff.mult(), () -> {
@@ -220,6 +240,16 @@ public final class SwordSpells {
                 });
             }
         } else if (element == Element.TIME) {
+            // Эхо: каждый 3-й удар
+            if (p.tickCount % 3 == 0) {
+                float echoDamage = (float) p.getAttributeValue(Attributes.ATTACK_DAMAGE) * 0.5f;
+                Scheduler.later(20, () -> {
+                    if (!target.isAlive()) return;
+                    bonusHit(p, target, echoDamage);
+                    burst(level, mid(target), ParticleTypes.REVERSE_PORTAL, 25, 1);
+                    sound(level, target, SoundEvents.ENDERMAN_TELEPORT, 1.5f);
+                });
+            }
             ActiveBuff echo = active(p, Buff.ECHO);
             if (echo != null) {
                 removeBuff(p, Buff.ECHO);
@@ -231,6 +261,32 @@ public final class SwordSpells {
                     sound(level, target, SoundEvents.ENDERMAN_TELEPORT, 1.5f);
                     return true;
                 }));
+            }
+        } else if (element == Element.STARS) {
+            // Шанс 15% вызвать падающую звезду
+            if (p.getRandom().nextFloat() < 0.15f) {
+                Vec3 pos = target.position();
+                for (int i = 0; i < 5; i++) {
+                    double r = 2.0 - i * 0.4;
+                    Scheduler.later(i * 3, bound(() -> ring(level, pos, r, ParticleTypes.END_ROD)));
+                }
+                Scheduler.later(15, bound(() -> {
+                    for (LivingEntity e : around(level, p, pos, 3)) {
+                        hurt(p, e, 6f);
+                    }
+                    burst(level, pos.add(0, 1, 0), ParticleTypes.FLASH, 3, 1);
+                    burst(level, pos.add(0, 1, 0), ParticleTypes.END_ROD, 60, 2);
+                    sound(level, p, SoundEvents.GENERIC_EXPLODE, 1.0f);
+                }));
+            }
+        } else if (element == Element.DARK_NATURE) {
+            // Гниль: Wither на 2 сек
+            effect(target, MobEffects.WITHER, 40, 0);
+            // Шанс 25% восстановить 1 голод и 1 ману при убийстве
+            if (!target.isAlive() && p.getRandom().nextFloat() < 0.25f) {
+                p.getFoodData().eat(1, 0.2f);
+                Mana.set(p, Math.min(Mana.MAX, Mana.get(p) + 1));
+                burst(level, mid(p), ParticleTypes.SOUL, 10, 1);
             }
         }
     }
