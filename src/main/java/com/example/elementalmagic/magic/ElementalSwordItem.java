@@ -1,15 +1,11 @@
 package com.example.elementalmagic.magic;
 
-import com.example.elementalmagic.Mana;
+import com.example.elementalmagic.MagicMod;
 import com.example.elementalmagic.ModEnchantments;
+import com.example.elementalmagic.Mana;
 import com.example.elementalmagic.SpellbookItem;
-import com.example.elementalmagic.magic.Element;
-import com.example.elementalmagic.magic.Spell;
-import com.example.elementalmagic.magic.SwordSpells;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -24,21 +20,29 @@ import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.Tiers;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.Rarity;
-import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
 
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Магический меч. Три собственных заклинания (не записываются со свитков), пассивный эффект
+ * у мечей обычных стихий и эффекты на удар. ПКМ колдует выбранное заклинание,
+ * Shift + ПКМ переключает.
+ */
 public class ElementalSwordItem extends SwordItem {
+    /** Бонус меча к урону заклинаний своей стихии. Чуть ниже, чем у посоха, ведь меч ещё и бьёт сам. */
     public static final float OWN_BONUS = 1.15f;
     public static final float OTHER_BONUS = 1.05f;
     public static final float OPPOSITE_PENALTY = 0.95f;
 
+    /** Прибавка к урону меча за уровень «Закалки маной». */
     public static final float TEMPERING_FLAT_PER_LEVEL = 1.0f;
+    /** Прибавка к множителю урона заклинаний за уровень «Закалки маной». */
     public static final float TEMPERING_PER_LEVEL = 0.05f;
 
+    /** Стихии, у которых есть меч. Должно совпадать с SwordSpells.SWORD_ELEMENTS. */
     public static final Set<Element> HAS_SWORD = EnumSet.of(
             Element.LIGHTNING, Element.WATER, Element.EARTH, Element.AIR, Element.FIRE,
             Element.NATURE, Element.TIME, Element.STARS, Element.DARK_NATURE);
@@ -50,6 +54,7 @@ public class ElementalSwordItem extends SwordItem {
         this.element = element;
     }
 
+    /** Свойства меча: урон как у алмазного (3 + бонус тира), скорость атаки как у обычного меча. */
     public static Item.Properties properties(Element e) {
         return new Item.Properties()
                 .rarity(e.bossOnly ? Rarity.EPIC : Rarity.RARE)
@@ -70,6 +75,7 @@ public class ElementalSwordItem extends SwordItem {
         return String.format("%.1f", ticks / 20.0);
     }
 
+    /** Смена заклинания (для клавиш Z / X, как у посоха). */
     public void cycle(Player player, ItemStack stack, int dir) {
         SpellbookItem.cycleItem(player, stack, element, dir);
     }
@@ -108,7 +114,8 @@ public class ElementalSwordItem extends SwordItem {
                 return InteractionResultHolder.fail(stack);
             }
 
-            float mult = multiplier(stack, spell.element());
+            HolderLookup.Provider registries = serverLevel.registryAccess();
+            float mult = multiplier(stack, spell.element(), registries);
             if (spell.castWith(serverLevel, player, mult)) {
                 if (!free) Mana.set(player, mana - cost);
                 SpellbookItem.setCooldownOf(stack, spell, tick);
@@ -123,26 +130,21 @@ public class ElementalSwordItem extends SwordItem {
     }
 
     /** Множитель урона заклинаний с учётом «Закалки маной» на мече. */
-    public float multiplier(ItemStack stack, Element spellElement) {
+    public float multiplier(ItemStack stack, Element spellElement, HolderLookup.Provider registries) {
         float mult = multiplier(spellElement);
-        int level = levelOf(stack, ModEnchantments.MANA_TEMPERING);
-        return mult * (1f + TEMPERING_PER_LEVEL * level);
+        int lvl = ModEnchantments.level(stack,
+                ModEnchantments.holder(registries, ModEnchantments.MANA_TEMPERING));
+        return mult * (1f + TEMPERING_PER_LEVEL * lvl);
     }
 
     /** Прибавка к урону самого меча от «Закалки маной». */
-    public float temperingBonus(ItemStack stack) {
-        int level = levelOf(stack, ModEnchantments.MANA_TEMPERING);
-        return TEMPERING_FLAT_PER_LEVEL * level;
+    public float temperingBonus(ItemStack stack, HolderLookup.Provider registries) {
+        int lvl = ModEnchantments.level(stack,
+                ModEnchantments.holder(registries, ModEnchantments.MANA_TEMPERING));
+        return TEMPERING_FLAT_PER_LEVEL * lvl;
     }
 
-    /** Получить уровень зачарования с предмета по ResourceKey. */
-    private static int levelOf(ItemStack stack, net.minecraft.resources.ResourceKey<Enchantment> key) {
-        if (stack.isEmpty()) return 0;
-        HolderLookup.Provider registries = stack.get(ModEnchantments.registriesComponent()) != null
-                ? null : null; // placeholder, see below
-        return 0;
-    }
-
+    /** Эффекты на удар: поджог у меча огня, Статический заряд, Раскалённый клинок, Эхо. */
     @Override
     public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
         boolean result = super.hurtEnemy(stack, target, attacker);
