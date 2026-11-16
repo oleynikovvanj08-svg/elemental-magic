@@ -32,20 +32,26 @@ public final class IceSpells {
             return true;
         });
 
-        // 2. Ледяная нова: волна холода вокруг игрока
-        Spells.reg("glacier_nova", School.GLACIER, 30, 200, (level, player) -> {
-            List<Entity> targets = level.getEntities(player,
-                    player.getBoundingBox().inflate(5), e -> e instanceof LivingEntity && e.isAlive());
-            if (targets.isEmpty()) return false;
-            for (Entity e : targets) {
-                LivingEntity living = (LivingEntity) e;
-                living.hurt(player.damageSources().indirectMagic(player, player), 4.0f);
-                living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 200, 3));
+        // 2. Ледяная поступь: Скорость II + ледоход (лёд под ногами) на 10 секунд
+        Spells.reg("ice_walk", School.GLACIER, 30, 300, (level, player) -> {
+            player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 200, 1));
+            // Эмуляция ледохода: каждые 5 тиков ставим лёд под ногами в течение 10 секунд (200 тиков)
+            for (int i = 0; i < 40; i++) {
+                int delay = i * 5;
+                level.getServer().tell(new net.minecraft.server.TickTask(
+                        level.getServer().getTickCount() + delay, () -> {
+                    if (!player.isAlive()) return;
+                    BlockPos below = player.blockPosition().below();
+                    var state = level.getBlockState(below);
+                    if (state.isAir() || state.liquid()) {
+                        level.setBlock(below, Blocks.FROSTED_ICE.defaultBlockState(), 3);
+                    }
+                }));
             }
             level.sendParticles(ParticleTypes.SNOWFLAKE,
-                    player.getX(), player.getY() + 1, player.getZ(), 150, 5, 1, 5, 0.1);
+                    player.getX(), player.getY() + 0.5, player.getZ(), 60, 1, 0.5, 1, 0.05);
             level.playSound(null, player.blockPosition(),
-                    SoundEvents.GLASS_BREAK, SoundSource.PLAYERS, 1.5f, 0.8f);
+                    SoundEvents.GLASS_PLACE, SoundSource.PLAYERS, 1.0f, 1.5f);
             return true;
         });
 
@@ -93,7 +99,7 @@ public final class IceSpells {
             for (int dx = -1; dx <= 1; dx++) {
                 for (int dy = 0; dy <= 2; dy++) {
                     for (int dz = -1; dz <= 1; dz++) {
-                        if (dx == 0 && dz == 0) continue; // колонну под целью не трогаем
+                        if (dx == 0 && dz == 0) continue;
                         BlockPos p = center.offset(dx, dy, dz);
                         if (level.getBlockState(p).isAir()) {
                             level.setBlock(p, Blocks.PACKED_ICE.defaultBlockState(), 3);
