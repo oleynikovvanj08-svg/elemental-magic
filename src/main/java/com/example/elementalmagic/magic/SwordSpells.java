@@ -1,5 +1,6 @@
 package com.example.elementalmagic.magic;
 
+import com.example.elementalmagic.Mana;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleOptions;
@@ -221,7 +222,6 @@ public final class SwordSpells {
                 });
             }
         } else if (element == Element.TIME) {
-            // Эхо: каждый 3-й удар
             if (p.tickCount % 3 == 0) {
                 float echoDamage = (float) p.getAttributeValue(Attributes.ATTACK_DAMAGE) * 0.5f;
                 Scheduler.later(20, () -> {
@@ -231,7 +231,6 @@ public final class SwordSpells {
                     sound(level, target, SoundEvents.ENDERMAN_TELEPORT, 1.5f);
                 });
             }
-            // Эхо-бафф (от заклинания time_echo)
             ActiveBuff echo = active(p, Buff.ECHO);
             if (echo != null) {
                 removeBuff(p, Buff.ECHO);
@@ -244,13 +243,12 @@ public final class SwordSpells {
                     return true;
                 }));
             }
-            // Ускоренный удар (от заклинания time_hastened_strike)
             ActiveBuff hastened = active(p, Buff.HASTENED_STRIKE);
             if (hastened != null) {
                 removeBuff(p, Buff.HASTENED_STRIKE);
                 float base = (float) p.getAttributeValue(Attributes.ATTACK_DAMAGE);
-                bonusHit(p, target, base); // двойной урон: обычный удар уже нанесён, добавляем ещё столько же
-                MagicEvents.freezeAi(target, 20); // 1 сек оглушения
+                bonusHit(p, target, base);
+                MagicEvents.freezeAi(target, 20);
                 burst(level, mid(target), ParticleTypes.FLASH, 2, 1);
                 burst(level, mid(target), ParticleTypes.END_ROD, 20, 1.5);
                 sound(level, p, SoundEvents.BEACON_POWER_SELECT, 1.4f);
@@ -629,9 +627,8 @@ public final class SwordSpells {
         });
 
         // ---------- Время ----------
-        // Заменяем timeHaste на «Ускоренный удар»
         Spell timeHastenedStrike = make("sword_time_hastened_strike", ACCELERATION, 25, 400, 3, (level, p) -> {
-            give(p, Buff.HASTENED_STRIKE, 100, scaled(1f)); // 5 секунд
+            give(p, Buff.HASTENED_STRIKE, 100, scaled(1f));
             burst(level, mid(p), ParticleTypes.ENCHANT, 40, 1.5);
             burst(level, mid(p), ParticleTypes.END_ROD, 20, 1);
             sound(level, p, SoundEvents.BEACON_POWER_SELECT, 1.2f);
