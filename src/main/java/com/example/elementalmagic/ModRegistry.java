@@ -2,6 +2,7 @@ package com.example.elementalmagic;
 
 import com.example.elementalmagic.entity.ModEntities;
 import com.example.elementalmagic.magic.Element;
+import com.example.elementalmagic.magic.ElementalSwordItem;
 import com.example.elementalmagic.magic.Spell;
 import com.example.elementalmagic.world.RandomScrollFunction;
 import com.mojang.serialization.Codec;
