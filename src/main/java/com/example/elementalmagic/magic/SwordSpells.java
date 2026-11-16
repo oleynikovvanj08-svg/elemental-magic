@@ -18,7 +18,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -38,13 +37,6 @@ import java.util.UUID;
 import static com.example.elementalmagic.magic.School.*;
 import static com.example.elementalmagic.magic.SpellUtil.*;
 
-/**
- * Заклинания магических мечей: по три на меч. Эти заклинания НЕ входят в общий список Spells.ALL,
- * поэтому для них нет свитков и их нельзя записать в посох или книгу.
- * Заклинания «Зыбучие пески» (меч земли) и «Backtrack» (меч времени) берутся из общего списка.
- *
- * Мечи есть у стихий: молния, вода, земля, воздух, огонь, природа, время, звёзды, тёмная природа.
- */
 public final class SwordSpells {
     private static final Logger LOGGER = LogUtils.getLogger();
 
@@ -57,48 +49,49 @@ public final class SwordSpells {
     private static boolean built = false;
 
     static {
-        // Урон за одно попадание. Здесь же можно подкрутить баланс.
         DAMAGE.put("sword_storm_dash", 8f);
-        DAMAGE.put("sword_static_charge", 2f);       // бонус к каждому удару меча, цепь бьёт вполовину
-        DAMAGE.put("sword_storm_wrath", 12f);        // за каждую из 5 молний
+        DAMAGE.put("sword_static_charge", 2f);
+        DAMAGE.put("sword_storm_wrath", 12f);
         DAMAGE.put("sword_water_crescent", 5f);
-        DAMAGE.put("sword_whirlpool", 3f);           // за каждый из 3 импульсов
+        DAMAGE.put("sword_whirlpool", 3f);
         DAMAGE.put("sword_stone_strike", 8f);
         DAMAGE.put("sword_flame_slash", 7f);
-        DAMAGE.put("sword_blazing_edge", 3f);        // бонус к каждому удару меча
+        DAMAGE.put("sword_blazing_edge", 3f);
         DAMAGE.put("sword_flame_whirl", 10f);
         DAMAGE.put("sword_wind_slash", 7f);
         DAMAGE.put("sword_thorn_thrust", 7f);
-        DAMAGE.put("sword_orbit", 5f);               // за каждый импульс орбиты
-        DAMAGE.put("sword_star_pull", 14f);          // финальный взрыв
+        DAMAGE.put("sword_orbit", 5f);
+        DAMAGE.put("sword_star_pull", 14f);
         DAMAGE.put("sword_infecting_strike", 5f);
-        DAMAGE.put("sword_infecting_pulse", 2f);     // за каждый импульс заражения
+        DAMAGE.put("sword_infecting_pulse", 2f);
         DAMAGE.put("sword_life_devour", 10f);
-        DAMAGE.put("sword_rot_shroud", 2f);          // за каждый импульс ауры
+        DAMAGE.put("sword_rot_shroud", 2f);
+
+        DAMAGE.put("sword_time_fracture", 9f);
+        DAMAGE.put("sword_time_stop", 0f);
+        DAMAGE.put("sword_star_shower", 4f);
+        DAMAGE.put("sword_gravity_crush", 12f);
+        DAMAGE.put("sword_rot_bloom", 7f);
+        DAMAGE.put("sword_dark_pact", 10f);
     }
 
     private static float d(String id) {
         return DAMAGE.getOrDefault(id, 0f);
     }
 
-    // ====================== Публичный интерфейс ======================
-
     public static boolean hasSword(Element e) {
         return SWORD_ELEMENTS.contains(e);
     }
 
-    /** Три заклинания меча этой стихии. Пустой список, если меча у стихии нет. */
     public static synchronized List<Spell> spellsOf(Element element) {
         ensureBuilt();
         return BY_ELEMENT.getOrDefault(element, List.of());
     }
 
-    /** Урон заклинания меча с учётом уровня (для подсказки). 0, если урона нет. */
     public static float damageOf(Spell spell) {
         return d(spell.id()) * spell.tierMultiplier();
     }
 
-    /** Описание пассивного эффекта меча или null, если пассивки нет. */
     public static String passiveText(Element e) {
         return switch (e) {
             case LIGHTNING -> "Скорость II и шанс 10% ударить молнией по врагу рядом";
@@ -114,9 +107,6 @@ public final class SwordSpells {
         };
     }
 
-    // ====================== Пассивные эффекты ======================
-
-    /** Вызывается каждый тик для игрока, держащего меч этой стихии. */
     public static void tickPassive(Player p, Element element) {
         switch (element) {
             case LIGHTNING -> refresh(p, MobEffects.MOVEMENT_SPEED, 1);
@@ -137,21 +127,17 @@ public final class SwordSpells {
         }
     }
 
-    /** Невидимый эффект на 1.5 секунды, обновляется каждые полсекунды, пока меч в руке. */
     private static void refresh(Player p, Holder<MobEffect> effect, int amplifier) {
         if (p.tickCount % 10 != 0) return;
         p.addEffect(new MobEffectInstance(effect, 30, amplifier, true, false, false));
     }
 
-    // ====================== Баффы (Статический заряд, Раскалённый клинок, Кора, Эхо) ======================
-
-    private enum Buff { STATIC_CHARGE, BLAZING_EDGE, THORNY_BARK, ECHO }
+    private enum Buff { STATIC_CHARGE, BLAZING_EDGE, THORNY_BARK, ECHO, HASTENED_STRIKE }
 
     private record ActiveBuff(long until, float mult) {}
 
     private static final Map<UUID, Map<Buff, ActiveBuff>> BUFFS = new HashMap<>();
 
-    /** mult запоминается в момент каста, чтобы бонусы посоха/уровня работали и позже. */
     private static void give(Player p, Buff buff, int ticks, float mult) {
         BUFFS.computeIfAbsent(p.getUUID(), k -> new EnumMap<>(Buff.class))
                 .put(buff, new ActiveBuff(p.level().getGameTime() + ticks, mult));
@@ -182,21 +168,17 @@ public final class SwordSpells {
         BUFFS.clear();
     }
 
-    /** Дополнительный удар: сбрасывает неуязвимость после удара мечом, иначе бонус «съедается». */
     private static void bonusHit(Player p, LivingEntity target, float amount) {
         target.invulnerableTime = 0;
         hurt(p, target, amount);
     }
 
-    /** Вызывается из ElementalSwordItem.hurtEnemy после обычного удара мечом. */
     public static void onMeleeHit(Player p, LivingEntity target, Element element) {
         if (!(p.level() instanceof ServerLevel level)) return;
 
-        // Пассивка меча огня: всегда поджигает
         if (element == Element.FIRE) target.igniteForSeconds(5);
 
         if (element == Element.LIGHTNING) {
-            // Шанс 10% ударить молнией по случайному врагу рядом
             if (p.getRandom().nextFloat() < 0.10f) {
                 List<LivingEntity> nearby = around(level, p, target.position(), 5);
                 if (!nearby.isEmpty()) {
@@ -206,7 +188,6 @@ public final class SwordSpells {
                     burst(level, mid(random), ParticleTypes.ELECTRIC_SPARK, 20, 1.5);
                 }
             }
-            // Статический заряд (если активен)
             ActiveBuff buff = active(p, Buff.STATIC_CHARGE);
             if (buff != null) {
                 withDamageMultiplier(buff.mult(), () -> {
@@ -250,6 +231,7 @@ public final class SwordSpells {
                     sound(level, target, SoundEvents.ENDERMAN_TELEPORT, 1.5f);
                 });
             }
+            // Эхо-бафф (от заклинания time_echo)
             ActiveBuff echo = active(p, Buff.ECHO);
             if (echo != null) {
                 removeBuff(p, Buff.ECHO);
@@ -262,8 +244,18 @@ public final class SwordSpells {
                     return true;
                 }));
             }
+            // Ускоренный удар (от заклинания time_hastened_strike)
+            ActiveBuff hastened = active(p, Buff.HASTENED_STRIKE);
+            if (hastened != null) {
+                removeBuff(p, Buff.HASTENED_STRIKE);
+                float base = (float) p.getAttributeValue(Attributes.ATTACK_DAMAGE);
+                bonusHit(p, target, base); // двойной урон: обычный удар уже нанесён, добавляем ещё столько же
+                MagicEvents.freezeAi(target, 20); // 1 сек оглушения
+                burst(level, mid(target), ParticleTypes.FLASH, 2, 1);
+                burst(level, mid(target), ParticleTypes.END_ROD, 20, 1.5);
+                sound(level, p, SoundEvents.BEACON_POWER_SELECT, 1.4f);
+            }
         } else if (element == Element.STARS) {
-            // Шанс 15% вызвать падающую звезду
             if (p.getRandom().nextFloat() < 0.15f) {
                 Vec3 pos = target.position();
                 for (int i = 0; i < 5; i++) {
@@ -280,9 +272,7 @@ public final class SwordSpells {
                 }));
             }
         } else if (element == Element.DARK_NATURE) {
-            // Гниль: Wither на 2 сек
             effect(target, MobEffects.WITHER, 40, 0);
-            // Шанс 25% восстановить 1 голод и 1 ману при убийстве
             if (!target.isAlive() && p.getRandom().nextFloat() < 0.25f) {
                 p.getFoodData().eat(1, 0.2f);
                 Mana.set(p, Math.min(Mana.MAX, Mana.get(p) + 1));
@@ -291,7 +281,6 @@ public final class SwordSpells {
         }
     }
 
-    /** Шипастая кора: часть урона от ближней атаки возвращается атакующему. */
     public static void onPlayerDamaged(Player p, DamageSource source, float amount) {
         ActiveBuff buff = active(p, Buff.THORNY_BARK);
         if (buff == null) return;
@@ -305,9 +294,6 @@ public final class SwordSpells {
         }
     }
 
-    // ====================== Вспомогательные функции ======================
-
-    /** Горизонтальное направление взгляда или null, если игрок смотрит строго вверх или вниз. */
     private static Vec3 flatLook(Player p) {
         Vec3 look = p.getLookAngle();
         Vec3 flat = new Vec3(look.x, 0, look.z);
@@ -315,7 +301,6 @@ public final class SwordSpells {
         return flat.normalize();
     }
 
-    /** Враги в коридоре перед игроком (длина и полуширина по горизонтали). */
     private static List<LivingEntity> corridor(ServerLevel level, Player p, double length, double halfWidth) {
         Vec3 dir = flatLook(p);
         if (dir == null) return List.of();
@@ -333,7 +318,6 @@ public final class SwordSpells {
         return out;
     }
 
-    /** Враги в секторе перед игроком. minDot = косинус половины угла (0.5 это 60 градусов в каждую сторону). */
     private static List<LivingEntity> cone(ServerLevel level, Player p, double range, double minDot) {
         Vec3 dir = flatLook(p);
         if (dir == null) return List.of();
@@ -346,7 +330,6 @@ public final class SwordSpells {
         return out;
     }
 
-    /** Дуга частиц перед игроком. */
     private static void arc(ServerLevel level, Player p, double radius, double halfAngle, ParticleOptions type) {
         Vec3 dir = flatLook(p);
         if (dir == null) return;
@@ -359,7 +342,6 @@ public final class SwordSpells {
         }
     }
 
-    /** Точка прицеливания: существо, иначе блок. Null, если игрок смотрит в пустоту. */
     private static Vec3 aimPoint(Player p, double range) {
         LivingEntity t = target(p, range);
         if (t != null) return t.position();
@@ -393,13 +375,11 @@ public final class SwordSpells {
         return List.copyOf(out);
     }
 
-    // ====================== Сами заклинания ======================
-
     private static void ensureBuilt() {
         if (built) return;
         built = true;
 
-        // ---------- Молния: Грозовой клинок ----------
+        // ---------- Молния ----------
         Spell stormDash = make("sword_storm_dash", STORM, 20, 80, 2, (level, p) -> {
             Vec3 look = p.getLookAngle();
             Vec3 dir = new Vec3(look.x, Mth.clamp(look.y, -0.2, 0.3), look.z).normalize();
@@ -464,7 +444,7 @@ public final class SwordSpells {
             return true;
         });
 
-        // ---------- Вода: Приливной клинок ----------
+        // ---------- Вода ----------
         Spell waterCrescent = make("sword_water_crescent", TIDE, 15, 40, 1, (level, p) -> {
             List<LivingEntity> list = cone(level, p, 6, 0.5);
             if (list.isEmpty()) return false;
@@ -509,7 +489,7 @@ public final class SwordSpells {
             return true;
         });
 
-        // ---------- Земля: Каменный клинок ----------
+        // ---------- Земля ----------
         Spell stoneStrike = make("sword_stone_strike", STONE, 18, 60, 2, (level, p) -> {
             List<LivingEntity> list = corridor(level, p, 8, 1.6);
             if (list.isEmpty()) return false;
@@ -535,7 +515,7 @@ public final class SwordSpells {
             return true;
         });
 
-        // ---------- Воздух: Клинок ветров ----------
+        // ---------- Воздух ----------
         Spell windSlash = make("sword_wind_slash", WIND, 15, 40, 1, (level, p) -> {
             List<LivingEntity> list = beam(level, p, 14, 1.2);
             if (list.isEmpty()) return false;
@@ -573,7 +553,7 @@ public final class SwordSpells {
             return true;
         });
 
-        // ---------- Огонь: Клинок пламени ----------
+        // ---------- Огонь ----------
         Spell flameSlash = make("sword_flame_slash", FLAME, 15, 40, 1, (level, p) -> {
             List<LivingEntity> list = cone(level, p, 5, 0.34);
             if (list.isEmpty()) return false;
@@ -609,7 +589,7 @@ public final class SwordSpells {
             return true;
         });
 
-        // ---------- Природа: Клинок рощи ----------
+        // ---------- Природа ----------
         Spell thornThrust = make("sword_thorn_thrust", FLORA, 15, 50, 1, (level, p) -> {
             List<LivingEntity> list = corridor(level, p, 7, 1.3);
             if (list.isEmpty()) return false;
@@ -648,11 +628,12 @@ public final class SwordSpells {
             return true;
         });
 
-        // ---------- Время: Клинок мгновений ----------
-        Spell timeHaste = make("sword_time_haste", ACCELERATION, 30, 300, 3, (level, p) -> {
-            effect(p, MobEffects.MOVEMENT_SPEED, 160, 2);
-            effect(p, MobEffects.DIG_SPEED, 160, 2);
+        // ---------- Время ----------
+        // Заменяем timeHaste на «Ускоренный удар»
+        Spell timeHastenedStrike = make("sword_time_hastened_strike", ACCELERATION, 25, 400, 3, (level, p) -> {
+            give(p, Buff.HASTENED_STRIKE, 100, scaled(1f)); // 5 секунд
             burst(level, mid(p), ParticleTypes.ENCHANT, 40, 1.5);
+            burst(level, mid(p), ParticleTypes.END_ROD, 20, 1);
             sound(level, p, SoundEvents.BEACON_POWER_SELECT, 1.2f);
             return true;
         });
@@ -664,15 +645,47 @@ public final class SwordSpells {
             return true;
         });
 
-        // ---------- Звёзды: Звёздный клинок ----------
+        Spell timeFracture = make("sword_time_fracture", STASIS, 35, 240, 3, (level, p) -> {
+            List<LivingEntity> list = cone(level, p, 5, 0.5);
+            if (list.isEmpty()) return false;
+            float dmg = d("sword_time_fracture");
+            for (LivingEntity e : list) {
+                hurt(p, e, dmg);
+                MagicEvents.freezeAi(e, 30);
+                effect(e, MobEffects.MOVEMENT_SLOWDOWN, 30, 3);
+                burst(level, mid(e), ParticleTypes.REVERSE_PORTAL, 20, 1);
+            }
+            arc(level, p, 3, Math.PI / 3, ParticleTypes.REVERSE_PORTAL);
+            arc(level, p, 5, Math.PI / 3, ParticleTypes.END_ROD);
+            sound(level, p, SoundEvents.ENDERMAN_TELEPORT, 1.0f);
+            return true;
+        });
+
+        Spell timeStop = make("sword_time_stop", STASIS, 60, 600, 5, (level, p) -> {
+            List<LivingEntity> list = around(level, p, 10);
+            if (list.isEmpty()) return false;
+            for (LivingEntity e : list) {
+                MagicEvents.freezeAi(e, 60);
+                effect(e, MobEffects.MOVEMENT_SLOWDOWN, 60, 10);
+                effect(e, MobEffects.WEAKNESS, 60, 10);
+                burst(level, mid(e), ParticleTypes.REVERSE_PORTAL, 15, 1);
+            }
+            burst(level, mid(p), ParticleTypes.FLASH, 5, 1);
+            ring(level, p.position(), 10, ParticleTypes.END_ROD);
+            ring(level, p.position(), 6, ParticleTypes.REVERSE_PORTAL);
+            sound(level, p, SoundEvents.BEACON_DEACTIVATE, 1.8f);
+            return true;
+        });
+
+        // ---------- Звёзды ----------
         Spell blinding = make("sword_blinding", CONSTELLATION, 35, 300, 3, (level, p) -> {
             List<LivingEntity> list = around(level, p, 8).stream()
                     .filter(e -> e instanceof Enemy || e instanceof Player).toList();
             if (list.isEmpty()) return false;
             for (LivingEntity e : list) {
                 effect(e, MobEffects.BLINDNESS, 40, 0);
-                effect(e, MobEffects.WEAKNESS, 40, 20);   // игроки не наносят урона
-                MagicEvents.freezeAi(e, 40);              // мобы 2 секунды не действуют
+                effect(e, MobEffects.WEAKNESS, 40, 20);
+                MagicEvents.freezeAi(e, 40);
                 burst(level, mid(e), ParticleTypes.END_ROD, 20, 1);
             }
             burst(level, mid(p), ParticleTypes.FLASH, 3, 1);
@@ -728,7 +741,50 @@ public final class SwordSpells {
             return true;
         });
 
-        // ---------- Тёмная природа: Клинок скверны ----------
+        Spell starShower = make("sword_star_shower", CONSTELLATION, 45, 360, 4, (level, p) -> {
+            Vec3 center = aimPoint(p, 15);
+            if (center == null) return false;
+            float dmg = d("sword_star_shower");
+            for (int i = 0; i < 5; i++) {
+                Scheduler.later(i * 5, bound(() -> {
+                    Vec3 pos = center.add((p.getRandom().nextDouble() - 0.5) * 4, 0,
+                            (p.getRandom().nextDouble() - 0.5) * 4);
+                    for (LivingEntity e : around(level, p, pos, 2)) {
+                        hurt(p, e, dmg);
+                    }
+                    burst(level, pos.add(0, 1, 0), ParticleTypes.END_ROD, 25, 1.5);
+                    burst(level, pos.add(0, 1, 0), ParticleTypes.FLASH, 2, 1);
+                    sound(level, p, SoundEvents.FIREWORK_ROCKET_BLAST, 0.8f);
+                }));
+            }
+            ring(level, center, 4, ParticleTypes.END_ROD);
+            sound(level, p, SoundEvents.FIREWORK_ROCKET_LAUNCH, 1.2f);
+            return true;
+        });
+
+        Spell gravityCrush = make("sword_gravity_crush", COSMOS, 40, 300, 4, (level, p) -> {
+            LivingEntity t = target(p, 6);
+            if (t == null) return false;
+            Vec3 start = t.position();
+            push(t, new Vec3(0, 1.5, 0));
+            burst(level, start.add(0, 1, 0), ParticleTypes.END_ROD, 20, 1);
+            Scheduler.later(20, bound(() -> {
+                if (!t.isAlive()) return;
+                push(t, new Vec3(0, -2.0, 0));
+                Scheduler.later(5, bound(() -> {
+                    if (!t.isAlive()) return;
+                    hurt(p, t, d("sword_gravity_crush"));
+                    effect(t, MobEffects.MOVEMENT_SLOWDOWN, 40, 2);
+                    burst(level, t.position().add(0, 0.5, 0), ParticleTypes.EXPLOSION_EMITTER, 1, 0);
+                    burst(level, t.position().add(0, 0.5, 0), ParticleTypes.END_ROD, 40, 2);
+                    sound(level, p, SoundEvents.GENERIC_EXPLODE, 1.2f);
+                }));
+            }));
+            sound(level, p, SoundEvents.BEACON_ACTIVATE, 1.0f);
+            return true;
+        });
+
+        // ---------- Тёмная природа ----------
         Spell infectingStrike = make("sword_infecting_strike", ROT, 25, 120, 2, (level, p) -> {
             LivingEntity t = target(p, 5);
             if (t == null) return false;
@@ -783,15 +839,46 @@ public final class SwordSpells {
             return true;
         });
 
+        Spell rotBloom = make("sword_rot_bloom", ROT, 40, 400, 4, (level, p) -> {
+            List<LivingEntity> list = enemies(level, p, 5);
+            if (list.isEmpty()) return false;
+            float dmg = d("sword_rot_bloom");
+            for (LivingEntity e : list) {
+                hurt(p, e, dmg);
+                effect(e, MobEffects.WITHER, 60, 0);
+                burst(level, mid(e), ParticleTypes.SPORE_BLOSSOM_AIR, 25, 1.5);
+            }
+            ring(level, p.position(), 5, ParticleTypes.SPORE_BLOSSOM_AIR);
+            burst(level, mid(p), ParticleTypes.SNEEZE, 30, 2);
+            sound(level, p, SoundEvents.EVOKER_CAST_SPELL, 1.0f);
+            return true;
+        });
+
+        Spell darkPact = make("sword_dark_pact", ROT, 0, 200, 3, (level, p) -> {
+            LivingEntity t = target(p, 6);
+            if (t == null) return false;
+            p.hurt(p.damageSources().magic(), 3f);
+            hurt(p, t, d("sword_dark_pact"));
+            Mana.set(p, Math.min(Mana.MAX, Mana.get(p) + 5));
+            if (!t.isAlive()) {
+                effect(p, MobEffects.REGENERATION, 60, 0);
+            }
+            line(level, p.getEyePosition(), mid(t), ParticleTypes.SOUL);
+            burst(level, mid(t), ParticleTypes.DAMAGE_INDICATOR, 20, 1.5);
+            burst(level, mid(p), ParticleTypes.SOUL, 15, 1);
+            sound(level, p, SoundEvents.SOUL_ESCAPE, 1.2f);
+            return true;
+        });
+
         BY_ELEMENT.put(Element.LIGHTNING, listOf(stormDash, staticCharge, stormWrath));
         BY_ELEMENT.put(Element.WATER, listOf(waterCrescent, whirlpool, healingTide));
         BY_ELEMENT.put(Element.EARTH, listOf(stoneStrike, stoneSkin, shared("quicksand")));
         BY_ELEMENT.put(Element.AIR, listOf(windSlash, windDash, repulsion));
         BY_ELEMENT.put(Element.FIRE, listOf(flameSlash, blazingEdge, flameWhirl));
         BY_ELEMENT.put(Element.NATURE, listOf(thornThrust, rootGrasp, thornyBark));
-        BY_ELEMENT.put(Element.TIME, listOf(shared("backtrack"), timeHaste, timeEcho));
-        BY_ELEMENT.put(Element.STARS, listOf(blinding, orbit, starPull));
-        BY_ELEMENT.put(Element.DARK_NATURE, listOf(infectingStrike, lifeDevour, rotShroud));
+        BY_ELEMENT.put(Element.TIME, listOf(shared("backtrack"), timeHastenedStrike, timeEcho, timeFracture, timeStop));
+        BY_ELEMENT.put(Element.STARS, listOf(blinding, orbit, starPull, starShower, gravityCrush));
+        BY_ELEMENT.put(Element.DARK_NATURE, listOf(infectingStrike, lifeDevour, rotShroud, rotBloom, darkPact));
     }
 
     private SwordSpells() {}
