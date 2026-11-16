@@ -1,22 +1,23 @@
 {
-   "description": {
-   "translate": "enchantment.elementalmagic.mana_tempering"
-    },
-   "supported_items": "#elementalmagic:magic_swords",
-    "weight": 3,
-   "max_level": 5,
-    "min_cost": {
+  "description": {
+    "translate": "enchantment.elementalmagic.mana_tempering"
+  },
+  "supported_items": "#elementalmagic:magic_swords",
+  "primary_items": "#elementalmagic:magic_swords",
+  "weight": 3,
+  "max_level": 5,
+  "min_cost": {
     "base": 15,
-   "per_level_above_first": 9
-   },
-   "max_cost": {
-   "base": 60,
-   "per_level_above_first": 9
-   },
-    "anvil_cost": 6,
-   "slots": [
-   "mainhand"
-   ],
-   "exclusive_set": "#elementalmagic:mana_sword_exclusive",
-   "effects": {}
-  }
+    "per_level_above_first": 9
+  },
+  "max_cost": {
+    "base": 60,
+    "per_level_above_first": 9
+  },
+  "anvil_cost": 6,
+  "slots": [
+    "mainhand"
+  ],
+  "exclusive_set": "#elementalmagic:mana_sword_exclusive",
+  "effects": {}
+}
