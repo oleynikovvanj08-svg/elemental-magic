@@ -1,21 +1,23 @@
 {
-   "description": {
-   "translate": "enchantment.elementalmagic.mana_recovery"
-    },
-   "supported_items": "#minecraft:enchantable/armor",
-   "weight": 4,
-   "max_level": 4,
-   "min_cost": {
-   "base": 12,
-   "per_level_above_first": 10
-    },
-   "max_cost": {
-   "base": 52,
-   "per_level_above_first": 10
-   },
-   "anvil_cost": 4,
-    "slots": [
+  "description": {
+    "translate": "enchantment.elementalmagic.mana_recovery"
+  },
+  "supported_items": "#minecraft:enchantable/armor",
+  "primary_items": "#minecraft:enchantable/armor",
+  "weight": 4,
+  "max_level": 4,
+  "min_cost": {
+    "base": 12,
+    "per_level_above_first": 10
+  },
+  "max_cost": {
+    "base": 52,
+    "per_level_above_first": 10
+  },
+  "anvil_cost": 4,
+  "slots": [
     "armor"
-    ],
-   "exclusive_set": "#elementalmagic:mana_armor_exclusive",
-   "effects": {}
+  ],
+  "exclusive_set": "#elementalmagic:mana_armor_exclusive",
+  "effects": {}
+}
