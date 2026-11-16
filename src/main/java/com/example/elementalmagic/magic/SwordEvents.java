@@ -1,6 +1,5 @@
 package com.example.elementalmagic.magic;
 
-import com.example.elementalmagic.ElementalSwordItem;
 import com.example.elementalmagic.MagicMod;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
