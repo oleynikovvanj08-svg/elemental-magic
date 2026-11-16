@@ -1,6 +1,7 @@
 package com.example.elementalmagic;
 
 import com.example.elementalmagic.magic.Element;
+import com.example.elementalmagic.magic.ElementalSwordItem;
 import com.example.elementalmagic.magic.Spell;
 import com.example.elementalmagic.magic.Spells;
 import net.minecraft.ChatFormatting;
