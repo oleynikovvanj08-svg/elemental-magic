@@ -273,7 +273,7 @@ public final class SwordSpells {
             effect(target, MobEffects.WITHER, 40, 0);
             if (!target.isAlive() && p.getRandom().nextFloat() < 0.25f) {
                 p.getFoodData().eat(1, 0.2f);
-                Mana.set(p, Math.min(Mana.MAX, Mana.get(p) + 1));
+                Mana.set(p, Math.min(Mana.BASE_MAX, Mana.get(p) + 1));
                 burst(level, mid(p), ParticleTypes.SOUL, 10, 1);
             }
         }
@@ -856,7 +856,7 @@ public final class SwordSpells {
             if (t == null) return false;
             p.hurt(p.damageSources().magic(), 3f);
             hurt(p, t, d("sword_dark_pact"));
-            Mana.set(p, Math.min(Mana.MAX, Mana.get(p) + 5));
+            Mana.set(p, Math.min(Mana.BASE_MAX, Mana.get(p) + 5));
             if (!t.isAlive()) {
                 effect(p, MobEffects.REGENERATION, 60, 0);
             }
