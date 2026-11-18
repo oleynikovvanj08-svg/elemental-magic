@@ -6,10 +6,12 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import top.theillusivec4.curios.api.SlotContext;
+import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
 import java.util.List;
 
-public class AccessoryItem extends Item {
+public class AccessoryItem extends Item implements ICurioItem {
     public enum Kind { AMULET, RING }
 
     public final Element element;
@@ -40,5 +42,16 @@ public class AccessoryItem extends Item {
     @Override
     public boolean isFoil(ItemStack stack) {
         return true;
+    }
+
+    // ===== Реализация ICurioItem =====
+    @Override
+    public boolean canEquip(SlotContext slotContext, ItemStack stack) {
+        // Проверяем, что предмет пытаются надеть в правильный слот
+        String identifier = slotContext.identifier();
+        return switch (kind) {
+            case AMULET -> identifier.equals("amulet");
+            case RING -> identifier.equals("ring");
+        };
     }
 }
