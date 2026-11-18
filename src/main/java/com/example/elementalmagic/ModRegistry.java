@@ -69,17 +69,7 @@ public final class ModRegistry {
     public static final Supplier<AttachmentType<Integer>> MANA = ATTACHMENTS.register("mana",
             () -> AttachmentType.builder(() -> Mana.BASE_MAX).serialize(Codec.INT).copyOnDeath().build());
 
-    public static final Supplier<AttachmentType<List<ItemStack>>> AMULET_SLOTS = ATTACHMENTS.register("amulet_slots",
-            () -> AttachmentType.<List<ItemStack>>builder(() -> List.of(ItemStack.EMPTY, ItemStack.EMPTY))
-                    .serialize(ItemStack.OPTIONAL_CODEC.listOf())
-                    .copyOnDeath()
-                    .build());
-
-    public static final Supplier<AttachmentType<List<ItemStack>>> RING_SLOTS = ATTACHMENTS.register("ring_slots",
-            () -> AttachmentType.<List<ItemStack>>builder(() -> List.of(ItemStack.EMPTY, ItemStack.EMPTY))
-                    .serialize(ItemStack.OPTIONAL_CODEC.listOf())
-                    .copyOnDeath()
-                    .build());
+    // УДАЛЕНЫ AMULET_SLOTS и RING_SLOTS — они больше не нужны, Curios управляет слотами
 
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> SPELL_INDEX =
             COMPONENTS.register("spell_index", () -> DataComponentType.<Integer>builder()
@@ -168,6 +158,7 @@ public final class ModRegistry {
                         () -> new ElementalSwordItem(e, ElementalSwordItem.properties(e))));
             }
 
+            // Амулеты и кольца теперь просто AccessoryItem, который реализует ICurioItem
             AMULETS.put(e, ITEMS.register(e.id + "_amulet",
                     () -> new AccessoryItem(e, AccessoryItem.Kind.AMULET,
                             new Item.Properties().stacksTo(1).rarity(Rarity.EPIC))));
