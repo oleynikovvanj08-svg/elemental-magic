@@ -28,6 +28,10 @@ sourceSets.main.resources {
 
 repositories {
     // Add here additional repositories if required by some of the dependencies below.
+    maven {
+        name = "CurseMaven"
+        url = "https://www.cursemaven.com"
+    }
 }
 
 base {
@@ -116,6 +120,11 @@ configurations {
 }
 
 dependencies {
+    // Adorned (Curios) для NeoForge 1.21.1
+    // File ID 5652826 соответствует curios-neoforge-9.1.2+1.21.0.jar
+    compileOnly "curse.maven:adorned-1036809:5652826"
+    localRuntime "curse.maven:adorned-1036809:5652826"
+
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
     // compileOnly "mezz.jei:jei-${mc_version}-common-api:${jei_version}"
