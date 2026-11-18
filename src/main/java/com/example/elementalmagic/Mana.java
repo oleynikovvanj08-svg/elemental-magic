@@ -1,11 +1,16 @@
 package com.example.elementalmagic;
 
-import com.example.elementalmagic.client.AccessorySlots;
 import com.example.elementalmagic.magic.Element;
 import com.example.elementalmagic.magic.Spell;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import top.theillusivec4.curios.api.CuriosApi;
+import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
+import top.theillusivec4.curios.api.type.inventory.ICurioStacksHandler;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public final class Mana {
     public static final int BASE_MAX = 100;
@@ -27,31 +32,32 @@ public final class Mana {
     }
 
     public static int max(Player p) {
-   int max = BASE_MAX;
-   for (ItemStack s : p.getArmorSlots()) {
-    if (s.getItem() instanceof ElementalArmorItem) max += 150;
-   }
-    for (ItemStack s : AccessorySlots.amulets(p)) {
-   if (s.getItem() instanceof AccessoryItem) max += 50;
-   }
-   for (ItemStack s : AccessorySlots.rings(p)) {
-   if (s.getItem() instanceof AccessoryItem) max += 15;
-   }
-   max += ModEnchantments.armorLevel(p, ModEnchantments.MANA_BOOST) * MANA_BOOST_PER_LEVEL;
-   return max;
-   }
-public static int regen(Player p) {
-   boolean hasRing = false;
-   for (ItemStack s : AccessorySlots.rings(p)) {
-   if (s.getItem() instanceof AccessoryItem) {
-   hasRing = true;
-   break;
+        int max = BASE_MAX;
+        for (ItemStack s : p.getArmorSlots()) {
+            if (s.getItem() instanceof ElementalArmorItem) max += 150;
+        }
+        for (ItemStack s : getEquipped(p, "amulet")) {
+            if (s.getItem() instanceof AccessoryItem) max += 50;
+        }
+        for (ItemStack s : getEquipped(p, "ring")) {
+            if (s.getItem() instanceof AccessoryItem) max += 15;
+        }
+        max += ModEnchantments.armorLevel(p, ModEnchantments.MANA_BOOST) * MANA_BOOST_PER_LEVEL;
+        return max;
     }
-   }
-   int base = hasRing ? 2 : 1;
-   int bonus = ModEnchantments.armorLevel(p, ModEnchantments.MANA_RECOVERY) / MANA_RECOVERY_PER_LEVEL;
-   return base + bonus;
-   }
+
+    public static int regen(Player p) {
+        boolean hasRing = false;
+        for (ItemStack s : getEquipped(p, "ring")) {
+            if (s.getItem() instanceof AccessoryItem) {
+                hasRing = true;
+                break;
+            }
+        }
+        int base = hasRing ? 2 : 1;
+        int bonus = ModEnchantments.armorLevel(p, ModEnchantments.MANA_RECOVERY) / MANA_RECOVERY_PER_LEVEL;
+        return base + bonus;
+    }
 
     public static int costFor(Player p, Spell spell) {
         Element e = spell.school().element;
@@ -70,10 +76,10 @@ public static int regen(Player p) {
                 bonus += a.element == spellElement ? ARMOR_OWN : ARMOR_ALL;
             }
         }
-        for (ItemStack s : AccessorySlots.amulets(p)) {
+        for (ItemStack s : getEquipped(p, "amulet")) {
             bonus += accessoryBonus(s, spellElement);
         }
-        for (ItemStack s : AccessorySlots.rings(p)) {
+        for (ItemStack s : getEquipped(p, "ring")) {
             bonus += accessoryBonus(s, spellElement);
         }
         return 1f + bonus;
@@ -99,12 +105,27 @@ public static int regen(Player p) {
 
     public static boolean hasAccessory(Player p, AccessoryItem.Kind kind, Element element) {
         Iterable<ItemStack> slots = kind == AccessoryItem.Kind.AMULET
-                ? AccessorySlots.amulets(p)
-                : AccessorySlots.rings(p);
+                ? getEquipped(p, "amulet")
+                : getEquipped(p, "ring");
         for (ItemStack s : slots) {
             if (s.getItem() instanceof AccessoryItem acc && acc.element == element) return true;
         }
         return false;
+    }
+
+    /** Получить все надетые предметы из указанного слота Curios. */
+    private static List<ItemStack> getEquipped(Player player, String slot) {
+        List<ItemStack> result = new ArrayList<>();
+        CuriosApi.getCuriosInventory(player).ifPresent(handler -> {
+            ICurioStacksHandler stacksHandler = handler.getStacksHandler(slot).orElse(null);
+            if (stacksHandler != null) {
+                var stacks = stacksHandler.getStacks();
+                for (int i = 0; i < stacks.getSlots(); i++) {
+                    result.add(stacks.getStackInSlot(i));
+                }
+            }
+        });
+        return result;
     }
 
     private Mana() {}
