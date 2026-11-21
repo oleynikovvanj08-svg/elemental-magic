@@ -13,22 +13,17 @@ public enum Element {
     AIR("air", 0xC8F7F7, "Воздух", false),
     FIRE("fire", 0xFF4500, "Огонь", false),
     NATURE("nature", 0x3CB043, "Природа", false),
-    ASH("ash", 0x9E9E9E, "Пепел", false),
     EXPLOSION("explosion", 0xFF8C00, "Взрывная магия", false),
-    ELEMENTAL("elemental", 0x40E0D0, "Все стихии", false),
 
-    // ===== Добавленные школы (их не хватало компилятору) =====
+    // ===== Добавленные школы (лёд и гравитация) =====
     ICE("ice", 0xAFEEEE, "Лёд", false),
     GRAVITY("gravity", 0x6A5ACD, "Гравитация", false),
-    POISON("poison", 0x7CFC00, "Яд", false),
-    SUMMONING("summoning", 0xDA70D6, "Призыв", false),
 
     // ===== Школы, которые падают только с боссов =====
     TIME("time", 0xD4AF37, "Время", true),
     STARS("stars", 0xB0C4FF, "Звёзды", true),
     DARK_NATURE("dark_nature", 0x556B2F, "Тёмная природа", true),
-    SHADOW("shadow", 0x4B4B6E, "Тени", true),
-    LAVA("lava", 0xFF6A00, "Лава", true);
+    SHADOW("shadow", 0x4B4B6E, "Тени", true);
 
     /** Бонус к урону заклинаний своей стихии. */
     public static final float OWN_BONUS = 1.10f;
