@@ -23,25 +23,16 @@ public enum School {
     SOUND(Element.AIR, "sound"),
     WIND(Element.AIR, "wind"),
     // Огонь
-    LAVA(Element.LAVA, "lava"),
     FLAME(Element.FIRE, "flame"),
     // Природа
     FLORA(Element.NATURE, "flora"),
     BEAST(Element.NATURE, "beast"),
-    // Пепел
-    DECAY(Element.ASH, "decay"),
-    SMOKE(Element.ASH, "smoke"),
     // Взрывная магия
     DETONATION(Element.EXPLOSION, "detonation"),
     SHOCKWAVE(Element.EXPLOSION, "shockwave"),
-    // Все стихии
-    FROST(Element.ELEMENTAL, "frost"),
-    FUSION(Element.ELEMENTAL, "fusion"),
-    // Новые школы: лёд, гравитация, яд, призыв
+    // Лёд и гравитация
     GLACIER(Element.ICE, "glacier"),
     GRAVITY(Element.GRAVITY, "gravity"),
-    POISON(Element.POISON, "poison"),
-    SUMMONING(Element.SUMMONING, "summoning"),
     // Время
     ACCELERATION(Element.TIME, "acceleration"),
     STASIS(Element.TIME, "stasis"),
