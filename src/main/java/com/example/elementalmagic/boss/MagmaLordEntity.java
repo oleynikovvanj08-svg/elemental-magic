@@ -18,10 +18,10 @@ import net.minecraft.world.phys.Vec3;
 import java.util.List;
 
 /**
- * Владыка магмы: босс стихии «Лава». Не горит в огне и лаве.
+ * Владыка пламени: босс стихии «Огонь». Не горит в огне и лаве.
  * Способности:
  *  1. Извержение: под ногами игроков вспыхивают метки, через секунду из земли бьёт огонь.
- *  2. Магматическое кольцо: расходящаяся волна огня, от неё можно уйти прыжком.
+ *  2. Огненное кольцо: расходящаяся волна огня, от неё можно уйти прыжком.
  *  Дальний импульс поджигает.
  */
 public class MagmaLordEntity extends AbstractBoss {
@@ -38,7 +38,7 @@ public class MagmaLordEntity extends AbstractBoss {
 
     @Override
     protected Element bossElement() {
-        return Element.LAVA;
+        return Element.FIRE;
     }
 
     @Override
@@ -63,7 +63,7 @@ public class MagmaLordEntity extends AbstractBoss {
             eruptionCooldown = enraged ? 140 : 200;
         }
         if (--ringCooldown <= 0) {
-            magmaRing(level);
+            flameRing(level);
             ringCooldown = enraged ? 180 : 260;
         }
     }
@@ -87,7 +87,7 @@ public class MagmaLordEntity extends AbstractBoss {
                     victim.setDeltaMovement(0, 0.9, 0);
                     victim.hurtMarked = true;
                 }
-                level.sendParticles(ParticleTypes.LAVA, at.x, at.y + 0.5, at.z, 40, 0.8, 0.8, 0.8, 0.1);
+                level.sendParticles(ParticleTypes.FLAME, at.x, at.y + 0.5, at.z, 40, 0.8, 0.8, 0.8, 0.1);
                 level.sendParticles(ParticleTypes.FLAME, at.x, at.y + 1.0, at.z, 40, 0.6, 1.2, 0.6, 0.05);
                 playSound(SoundEvents.BLAZE_SHOOT, 1.5f, 0.6f);
             });
@@ -95,14 +95,14 @@ public class MagmaLordEntity extends AbstractBoss {
     }
 
     /** Кольцо огня расходится от босса: бьёт тех, кто стоит на земле. Прыжок спасает. */
-    private void magmaRing(ServerLevel level) {
+    private void flameRing(ServerLevel level) {
         Vec3 c = position();
         for (int i = 1; i <= 6; i++) {
             double r = 2 + i * 1.8;
             Scheduler.later(i * 4, () -> {
                 if (!isAlive()) return;
                 ringAt(level, c, r, ParticleTypes.FLAME);
-                ringAt(level, c, r, ParticleTypes.LAVA);
+                ringAt(level, c, r, ParticleTypes.FLAME);
                 for (Player p : level.getEntitiesOfClass(Player.class, new AABB(c, c).inflate(r + 1.5),
                         AbstractBoss::valid)) {
                     double d = Math.hypot(p.getX() - c.x, p.getZ() - c.z);
@@ -115,6 +115,6 @@ public class MagmaLordEntity extends AbstractBoss {
                 }
             });
         }
-        playSound(SoundEvents.LAVA_EXTINGUISH, 2f, 0.6f);
+        playSound(SoundEvents.FIRECHARGE_USE, 2f, 0.6f);
     }
 }
