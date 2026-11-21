@@ -53,9 +53,7 @@ final class ExtraSpells {
         air();
         fire();
         nature();
-        ash();
         explosion();
-        elemental();
         time();
         stars();
         darkNature();
@@ -402,7 +400,6 @@ final class ExtraSpells {
                     MobSpawnType.MOB_SUMMONED, null);
             horse.setTamed(true);
             horse.setOwnerUUID(p.getUUID());
-            // Если IDE ругается на сигнатуру, в 1.21.1 это equipSaddle(ItemStack, SoundSource)
             horse.equipSaddle(new ItemStack(Items.SADDLE), SoundSource.PLAYERS);
             horse.setPersistenceRequired();
             level.addFreshEntity(horse);
@@ -436,33 +433,6 @@ final class ExtraSpells {
         });
     }
 
-    // ============================== ПЕПЕЛ ==============================
-    private static void ash() {
-        reg("ash_step", SMOKE, 20, 160, 2, (level, p) -> {
-            effect(p, MobEffects.INVISIBILITY, 120, 0);
-            effect(p, MobEffects.MOVEMENT_SPEED, 120, 1);
-            for (LivingEntity e : enemies(level, p, 5)) effect(e, MobEffects.BLINDNESS, 40, 0);
-            burst(level, mid(p), ParticleTypes.ASH, 120, 3);
-            burst(level, mid(p), ParticleTypes.LARGE_SMOKE, 40, 2);
-            sound(level, p, SoundEvents.FIRECHARGE_USE, 0.6f);
-            return true;
-        });
-
-        reg("ash_squall", SMOKE, 30, 200, 3, (level, p) -> {
-            if (enemies(level, p, 10).isEmpty()) return false;
-            Scheduler.repeat(10, 4, bound(() -> {
-                for (LivingEntity e : enemies(level, p, 10)) {
-                    effect(e, MobEffects.BLINDNESS, 60, 0);
-                    effect(e, MobEffects.MOVEMENT_SLOWDOWN, 60, 2);
-                }
-                burst(level, mid(p), ParticleTypes.ASH, 250, 10);
-                burst(level, mid(p).add(0, 1, 0), ParticleTypes.LARGE_SMOKE, 60, 8);
-            }));
-            sound(level, p, SoundEvents.FIRECHARGE_USE, 0.5f);
-            return true;
-        });
-    }
-
     // ============================== ВЗРЫВЫ ==============================
     private static void explosion() {
         reg("rocket_jump", SHOCKWAVE, 20, 80, 2, (level, p) -> {
@@ -490,7 +460,6 @@ final class ExtraSpells {
             Vec3[] last = {grenade.position()};
             float dmg = d("grenade");
 
-            // Дымный след, пока граната летит
             Scheduler.repeat(2, 19, () -> {
                 if (grenade.isRemoved()) return;
                 last[0] = grenade.position();
@@ -498,7 +467,6 @@ final class ExtraSpells {
                         2, 0.05, 0.05, 0.05, 0.01);
             });
 
-            // Взрыв через 2 секунды
             Scheduler.later(40, bound(() -> {
                 Vec3 c = grenade.isRemoved() ? last[0] : grenade.position();
                 grenade.discard();
@@ -511,26 +479,6 @@ final class ExtraSpells {
                 sound(level, grenade, SoundEvents.GENERIC_EXPLODE, 1f);
             }));
             sound(level, p, SoundEvents.FIRECHARGE_USE, 1f);
-            return true;
-        });
-    }
-
-    // ============================== ВСЕ СТИХИИ ==============================
-    private static void elemental() {
-        reg("elemental_resonance", FUSION, 50, 200, 4, (level, p) -> {
-            LivingEntity t = target(p, 25);
-            if (t == null) return false;
-            hurt(p, t, d("elemental_resonance"));
-            t.igniteForSeconds(4);                              // огонь
-            effect(t, MobEffects.MOVEMENT_SLOWDOWN, 100, 1);    // вода и лёд
-            effect(t, MobEffects.WEAKNESS, 100, 0);             // земля
-            effect(t, MobEffects.POISON, 100, 0);               // природа
-            line(level, p.getEyePosition(), mid(t), ParticleTypes.END_ROD);
-            burst(level, mid(t), ParticleTypes.FLAME, 20, 1.5);
-            burst(level, mid(t), ParticleTypes.SNOWFLAKE, 20, 1.5);
-            burst(level, mid(t), ParticleTypes.ELECTRIC_SPARK, 20, 1.5);
-            burst(level, mid(t), ParticleTypes.HAPPY_VILLAGER, 20, 1.5);
-            sound(level, t, SoundEvents.EVOKER_CAST_SPELL, 1f);
             return true;
         });
     }
@@ -556,8 +504,6 @@ final class ExtraSpells {
             return true;
         });
 
-        // Время отката зависит от уровня заклинания: I=3, II=4, III=5, IV=7, V=10 секунд.
-        // Чтобы изменить время, поменяй число уровня (пятый параметр) в reg ниже.
         reg("backtrack", STASIS, 35, 400, 3, (level, p) -> {
             if (!(p instanceof ServerPlayer sp)) return false;
             int tier = Spells.tierOf("backtrack");
@@ -620,7 +566,6 @@ final class ExtraSpells {
 
         reg("supernova", COSMOS, 90, 1800, 5, (level, p) -> {
             float dmg = d("supernova");
-            // Зарядка: расширяющиеся кольца 2 секунды
             for (int i = 1; i <= 8; i++) {
                 double r = i * 2.5;
                 Scheduler.later(i * 5, () -> {
@@ -629,7 +574,6 @@ final class ExtraSpells {
                 });
             }
             sound(level, p, SoundEvents.BEACON_ACTIVATE, 0.5f);
-            // Взрыв: бьёт всех, кроме тебя, питомцев и призванных существ. Блоки не ломает.
             Scheduler.later(45, bound(() -> {
                 Vec3 c = p.position();
                 for (LivingEntity e : around(level, p, c, 20)) {
@@ -738,7 +682,7 @@ final class ExtraSpells {
             LivingEntity t = target(p, 20);
             if (t == null) return false;
             int ticks = 120;
-            MagicEvents.freezeAi(t, ticks);     // моб сам не действует, только повторяет за тобой
+            MagicEvents.freezeAi(t, ticks);
             Vec3[] last = {p.position()};
             boolean[] done = {false};
             for (int i = 1; i <= ticks; i++) {
@@ -759,7 +703,6 @@ final class ExtraSpells {
         });
     }
 
-    /** Один тик Захвата: цель повторяет горизонтальное движение хозяина (и прыжок). */
     private static void gripTick(ServerLevel level, Player p, LivingEntity t, Vec3[] last, boolean[] done) {
         if (done[0]) return;
         if (!p.isAlive() || !t.isAlive() || t.level() != p.level() || p.distanceToSqr(t) > 40 * 40) {
@@ -773,7 +716,6 @@ final class ExtraSpells {
         boolean jumped = delta.y > 0.2 && t.onGround();
         if (Math.abs(delta.x) > 1.0E-4 || Math.abs(delta.z) > 1.0E-4) {
             if (t instanceof ServerPlayer target) {
-                // Игроков двигаем телепортом, иначе клиент вернёт их на место
                 var box = target.getBoundingBox().move(delta.x, 0, delta.z);
                 if (level.noCollision(target, box)) {
                     target.connection.teleport(target.getX() + delta.x, target.getY(), target.getZ() + delta.z,
