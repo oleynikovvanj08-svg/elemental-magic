@@ -26,13 +26,9 @@ public final class Spells {
         AirSpells.init();
         FireSpells.init();
         NatureSpells.init();
-        AshSpells.init();
         ExplosionSpells.init();
-        ElementalSpells.init();
         IceSpells.init();
         GravitySpells.init();
-        PoisonSpells.init();
-        SummoningSpells.init();
 
         // Школы с боссов
         TimeSpells.init();
