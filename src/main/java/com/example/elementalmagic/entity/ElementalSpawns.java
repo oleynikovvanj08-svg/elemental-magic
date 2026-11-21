@@ -30,8 +30,7 @@ public record ElementalSpawns() implements BiomeModifier {
     /** Частота спавна. Для сравнения: у зомби 95. */
     private static int weight(ModEntities.MobEntry m) {
         int w = m.kind() == ElementalMob.Kind.WISP ? 15 : 10;
-        // Стихийные мобы спавнятся во всём Верхнем мире, поэтому реже
-        return m.element() == com.example.elementalmagic.magic.Element.ELEMENTAL ? Math.max(1, w / 2) : w;
+        return w;
     }
 
     private static boolean spawnsIn(ModEntities.MobEntry m, Holder<Biome> b) {
@@ -46,21 +45,16 @@ public record ElementalSpawns() implements BiomeModifier {
                     Biomes.WINDSWEPT_GRAVELLY_HILLS, Biomes.WINDSWEPT_SAVANNA);
             case FIRE -> any(b, Biomes.NETHER_WASTES, Biomes.DESERT);
             case NATURE -> b.is(BiomeTags.IS_FOREST);
-            case ASH -> any(b, Biomes.BASALT_DELTAS, Biomes.SOUL_SAND_VALLEY, Biomes.SAVANNA);
             case EXPLOSION -> any(b, Biomes.CRIMSON_FOREST, Biomes.BADLANDS);
-            case ELEMENTAL -> b.is(BiomeTags.IS_OVERWORLD);
             case TIME -> any(b, Biomes.DRIPSTONE_CAVES, Biomes.LUSH_CAVES);
             case STARS -> any(b, Biomes.END_HIGHLANDS, Biomes.END_MIDLANDS, Biomes.SMALL_END_ISLANDS,
                     Biomes.END_BARRENS);
             case DARK_NATURE -> any(b, Biomes.MANGROVE_SWAMP, Biomes.WARPED_FOREST);
             case SHADOW -> any(b, Biomes.DEEP_DARK, Biomes.DARK_FOREST);
-            // Новые стихии: пока своих мобов у них нет, ветки заданы на будущее
             case ICE -> any(b, Biomes.SNOWY_PLAINS, Biomes.SNOWY_TAIGA, Biomes.ICE_SPIKES,
                     Biomes.FROZEN_PEAKS);
             case GRAVITY -> any(b, Biomes.JAGGED_PEAKS, Biomes.STONY_PEAKS, Biomes.FROZEN_PEAKS);
-            case POISON -> any(b, Biomes.SWAMP, Biomes.MANGROVE_SWAMP, Biomes.JUNGLE);
-            case SUMMONING -> any(b, Biomes.PLAINS, Biomes.TAIGA, Biomes.MEADOW);
-            case LAVA -> any(b, Biomes.BASALT_DELTAS, Biomes.NETHER_WASTES, Biomes.SOUL_SAND_VALLEY);
+            default -> false;
         };
     }
 
