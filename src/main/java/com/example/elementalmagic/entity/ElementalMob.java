@@ -36,11 +36,9 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
-/** Моб стихии. Один класс для всех 45 мобов: стихия и вид передаются при регистрации. */
 public class ElementalMob extends Monster implements RangedAttackMob {
 
     public enum Kind {
-        //    id       материал   здоровье урон скорость броня отбрас. масштаб ширина высота опыт цвет пятен яйца
         GOLEM("golem", "shard",   40,      7,   0.23,    6,    0.6,    1.3f,   0.9f,  2.5f,  10,  0x333333),
         MAGE ("mage",  "crystal", 24,      4,   0.25,    2,    0.0,    1.0f,   0.6f,  1.95f, 8,   0x1A1A40),
         WISP ("wisp",  "core",    16,      4,   0.34,    0,    0.0,    0.7f,   0.45f, 1.4f,  6,   0xFFFFFF);
@@ -77,7 +75,6 @@ public class ElementalMob extends Monster implements RangedAttackMob {
         this.element = element;
         this.kind = kind;
         this.xpReward = kind.xp;
-        // Цели добавляются здесь, потому что registerGoals() вызывается до того, как заданы element и kind
         if (!level.isClientSide) addGoals();
     }
 
@@ -92,7 +89,6 @@ public class ElementalMob extends Monster implements RangedAttackMob {
                 .add(Attributes.FOLLOW_RANGE, 32);
     }
 
-    /** Название моба без ru_ru.json. */
     @Override
     protected Component getTypeName() {
         if (element == null || kind == null) return super.getTypeName();
@@ -119,12 +115,10 @@ public class ElementalMob extends Monster implements RangedAttackMob {
         SpawnGroupData result = super.finalizeSpawn(level, difficulty, spawnType, data);
         if (kind == Kind.MAGE) {
             setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(ModRegistry.STAVES.get(element).get()));
-            setDropChance(EquipmentSlot.MAINHAND, 0f); // посох не выпадает
+            setDropChance(EquipmentSlot.MAINHAND, 0f);
         }
         return result;
     }
-
-    // ---------- Атаки ----------
 
     @Override
     public boolean doHurtTarget(Entity target) {
@@ -133,7 +127,6 @@ public class ElementalMob extends Monster implements RangedAttackMob {
         return hit;
     }
 
-    /** Магический удар мага на расстоянии. */
     @Override
     public void performRangedAttack(LivingEntity target, float power) {
         if (!(level() instanceof ServerLevel server) || !hasLineOfSight(target)) return;
@@ -153,7 +146,6 @@ public class ElementalMob extends Monster implements RangedAttackMob {
         playSound(SoundEvents.EVOKER_CAST_SPELL, 1f, 1.2f);
     }
 
-    /** Эффект стихии при попадании. */
     private void applyElementEffect(LivingEntity t) {
         switch (element) {
             case LIGHTNING -> t.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 40, 1));
@@ -164,23 +156,14 @@ public class ElementalMob extends Monster implements RangedAttackMob {
             case AIR -> t.addEffect(new MobEffectInstance(MobEffects.LEVITATION, 20, 0));
             case FIRE -> t.igniteForSeconds(4);
             case NATURE -> t.addEffect(new MobEffectInstance(MobEffects.POISON, 60, 0));
-            case ASH -> t.addEffect(new MobEffectInstance(MobEffects.HUNGER, 100, 0));
             case EXPLOSION -> t.knockback(1.2, getX() - t.getX(), getZ() - t.getZ());
-            case ELEMENTAL -> {
-                switch (random.nextInt(3)) {
-                    case 0 -> t.igniteForSeconds(3);
-                    case 1 -> t.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 60, 0));
-                    default -> t.addEffect(new MobEffectInstance(MobEffects.POISON, 60, 0));
-                }
-            }
             case TIME -> t.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 60, 2));
             case STARS -> t.addEffect(new MobEffectInstance(MobEffects.LEVITATION, 30, 1));
             case DARK_NATURE -> t.addEffect(new MobEffectInstance(MobEffects.WITHER, 60, 0));
             case SHADOW -> t.addEffect(new MobEffectInstance(MobEffects.DARKNESS, 80, 0));
+            default -> { }
         }
     }
-
-    // ---------- Внешний вид и звуки ----------
 
     private DustParticleOptions dust() {
         int c = element.color;
@@ -191,7 +174,6 @@ public class ElementalMob extends Monster implements RangedAttackMob {
     @Override
     public void aiStep() {
         super.aiStep();
-        // Частицы цвета стихии вокруг моба
         if (level().isClientSide && random.nextInt(3) == 0) {
             level().addParticle(dust(), getRandomX(0.6), getRandomY(), getRandomZ(0.6), 0, 0, 0);
         }
