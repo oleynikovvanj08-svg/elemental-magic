@@ -12,7 +12,6 @@ import static com.example.elementalmagic.magic.Spells.reg;
 
 final class FireSpells {
     static void init() {
-        // ==================== ПЛАМЯ ====================
         reg("flame_spark", FLAME, 10, 20, (level, p) -> {
             LivingEntity t = target(p, 20);
             if (t == null) return false;
@@ -121,7 +120,7 @@ final class FireSpells {
             return true;
         });
 
-        // ===== ОСОБОЕ ЗАКЛИНАНИЕ ОГНЕННОГО БОССА (падает с MagmaLordEntity) =====
+        // Особое заклинание огненного босса
         reg("fire_lord_inferno", FLAME, 60, 600, 5, (level, p) -> {
             for (LivingEntity e : enemies(level, p, 8)) {
                 hurt(p, e, 15);
@@ -130,7 +129,7 @@ final class FireSpells {
             }
             ring(level, p.position(), 8, ParticleTypes.FLAME);
             burst(level, mid(p), ParticleTypes.FLAME, 200, 8);
-            sound(level, p, SoundEvents.GENERIC_EXPLODE.value(), 2.0f, 0.5f);
+            sound(level, p, SoundEvents.GENERIC_EXPLODE.value(), 2.0f);
             return true;
         });
     }
