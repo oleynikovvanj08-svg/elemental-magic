@@ -41,6 +41,11 @@ import static com.example.elementalmagic.magic.SpellUtil.*;
 public final class SwordSpells {
     private static final Logger LOGGER = LogUtils.getLogger();
 
+    /** Флаг: время остановлено. Проверяется в Mixin для отмены тика сущностей. */
+    public static boolean TIME_STOPPED = false;
+    /** Игрок, который остановил время (его тик не отменяется). */
+    public static UUID TIME_STOP_OWNER = null;
+
     public static final Set<Element> SWORD_ELEMENTS = EnumSet.of(
             Element.LIGHTNING, Element.WATER, Element.EARTH, Element.AIR, Element.FIRE,
             Element.NATURE, Element.TIME, Element.STARS, Element.DARK_NATURE);
@@ -658,11 +663,17 @@ public final class SwordSpells {
             return true;
         });
 
+        // ===== TIME STOP: останавливает время на 3 секунды (60 тиков) =====
         Spell timeStop = make("sword_time_stop", STASIS, 60, 600, 5, (level, p) -> {
             List<LivingEntity> list = around(level, p, 10);
             if (list.isEmpty()) return false;
+
+            // Включаем флаг — Mixin отменит тик всех сущностей, кроме игрока
+            TIME_STOPPED = true;
+            TIME_STOP_OWNER = p.getUUID();
+
+            // Визуал и эффекты для мобов
             for (LivingEntity e : list) {
-                MagicEvents.freezeAi(e, 60);
                 effect(e, MobEffects.MOVEMENT_SLOWDOWN, 60, 10);
                 effect(e, MobEffects.WEAKNESS, 60, 10);
                 burst(level, mid(e), ParticleTypes.REVERSE_PORTAL, 15, 1);
@@ -671,6 +682,13 @@ public final class SwordSpells {
             ring(level, p.position(), 10, ParticleTypes.END_ROD);
             ring(level, p.position(), 6, ParticleTypes.REVERSE_PORTAL);
             sound(level, p, SoundEvents.BEACON_DEACTIVATE, 1.8f);
+
+            // Через 60 тиков выключаем флаг
+            Scheduler.later(60, () -> {
+                TIME_STOPPED = false;
+                TIME_STOP_OWNER = null;
+            });
+
             return true;
         });
 
