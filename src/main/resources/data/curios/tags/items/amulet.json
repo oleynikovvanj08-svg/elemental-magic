@@ -1,20 +1,20 @@
 {
   "replace": false,
   "values": [
-    "elementalmagic:fire_amulet",
-    "elementalmagic:water_amulet",
-    "elementalmagic:earth_amulet",
-    "elementalmagic:air_amulet",
     "elementalmagic:lightning_amulet",
     "elementalmagic:light_amulet",
     "elementalmagic:darkness_amulet",
+    "elementalmagic:water_amulet",
+    "elementalmagic:earth_amulet",
+    "elementalmagic:air_amulet",
+    "elementalmagic:fire_amulet",
+    "elementalmagic:nature_amulet",
+    "elementalmagic:explosion_amulet",
     "elementalmagic:ice_amulet",
     "elementalmagic:gravity_amulet",
     "elementalmagic:time_amulet",
     "elementalmagic:stars_amulet",
     "elementalmagic:dark_nature_amulet",
-    "elementalmagic:shadow_amulet",
-    "elementalmagic:explosion_amulet",
-    "elementalmagic:nature_amulet"
+    "elementalmagic:shadow_amulet"
   ]
 }
