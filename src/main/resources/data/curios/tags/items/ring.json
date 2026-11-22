@@ -1,20 +1,20 @@
 {
   "replace": false,
   "values": [
-    "elementalmagic:fire_ring",
-    "elementalmagic:water_ring",
-    "elementalmagic:earth_ring",
-    "elementalmagic:air_ring",
     "elementalmagic:lightning_ring",
     "elementalmagic:light_ring",
     "elementalmagic:darkness_ring",
+    "elementalmagic:water_ring",
+    "elementalmagic:earth_ring",
+    "elementalmagic:air_ring",
+    "elementalmagic:fire_ring",
+    "elementalmagic:nature_ring",
+    "elementalmagic:explosion_ring",
     "elementalmagic:ice_ring",
     "elementalmagic:gravity_ring",
     "elementalmagic:time_ring",
     "elementalmagic:stars_ring",
     "elementalmagic:dark_nature_ring",
-    "elementalmagic:shadow_ring",
-    "elementalmagic:explosion_ring",
-    "elementalmagic:nature_ring"
+    "elementalmagic:shadow_ring"
   ]
 }
