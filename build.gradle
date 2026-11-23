@@ -13,18 +13,17 @@ version = mod_version
 group = mod_group_id
 
 sourceSets.main.resources {
+    // ВАЖНО: проверь, нет ли в src/generated/resources старых ring.json/amulet.json
     srcDir('src/generated/resources')
     exclude("**/*.bbmodel")
     exclude("src/generated/**/.cache")
 }
 
 repositories {
-    // Официальный Maven Curios (рекомендуется)
     maven {
         name = "Illusive Soulworks maven"
         url = "https://maven.theillusivec4.top/"
     }
-    // CurseMaven (на случай, если понадобится что-то ещё)
     maven {
         name = "CurseMaven"
         url = "https://www.cursemaven.com"
@@ -81,7 +80,7 @@ configurations {
 }
 
 dependencies {
-    // Curios API: компилируемся против API, в рантайме используем полный jar
+    // Curios API: компилируемся против API, в рантайме используем полный jar (правильно)
     compileOnly "top.theillusivec4.curios:curios-neoforge:9.5.1+1.21.1:api"
     runtimeOnly "top.theillusivec4.curios:curios-neoforge:9.5.1+1.21.1"
 }
