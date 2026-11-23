@@ -11,13 +11,13 @@ public class CurioPredicates {
 
     public static void register() {
         // Предикат для колец: проверяет, что предмет — это AccessoryItem с kind == RING
-        CuriosApi.registerPredicate(RING_VALIDATOR, (SlotResult slotResult) -> {
+        CuriosApi.registerCurioPredicates(RING_VALIDATOR, (SlotResult slotResult) -> {
             ItemStack stack = slotResult.stack();
             return stack.getItem() instanceof AccessoryItem accessory && accessory.kind == AccessoryItem.Kind.RING;
         });
 
         // Предикат для амулетов: проверяет, что предмет — это AccessoryItem с kind == AMULET
-        CuriosApi.registerPredicate(AMULET_VALIDATOR, (SlotResult slotResult) -> {
+        CuriosApi.registerCurioPredicates(AMULET_VALIDATOR, (SlotResult slotResult) -> {
             ItemStack stack = slotResult.stack();
             return stack.getItem() instanceof AccessoryItem accessory && accessory.kind == AccessoryItem.Kind.AMULET;
         });
