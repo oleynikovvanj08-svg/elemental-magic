@@ -201,7 +201,7 @@ public final class ModRegistry {
             .displayItems((params, out) -> {
                 out.accept(MAGIC_TABLE_ITEM.get());
                 out.accept(MANA_ITEM.get());
-                // Меч поглощения теперь добавляется в ModExtras
+                // Меч поглощения добавляется в ModExtras
                 for (Element e : Element.values()) {
                     out.accept(fullBook(e));
                     out.accept(STAVES.get(e).get());
