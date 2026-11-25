@@ -25,6 +25,7 @@ public final class Spells {
         EarthSpells.init();
         AirSpells.init();
         FireSpells.init();
+        FireExtraSpells.init(); // ← добавлено: регистрирует метеоритный дождь
         NatureSpells.init();
         ExplosionSpells.init();
         IceSpells.init();
