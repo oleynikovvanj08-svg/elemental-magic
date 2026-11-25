@@ -22,7 +22,6 @@ public final class ModExtras {
         ITEMS.register(bus);
     }
 
-    /** Кладём меч в основную вкладку мода. */
     @SubscribeEvent
     public static void onCreativeTab(BuildCreativeModeTabContentsEvent event) {
         ResourceKey<CreativeModeTab> main = ResourceKey.create(Registries.CREATIVE_MODE_TAB,
