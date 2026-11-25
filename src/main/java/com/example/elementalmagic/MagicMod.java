@@ -16,10 +16,7 @@ public class MagicMod {
         ModRegistry.register(modBus);
         ModStructures.register(modBus);
         ModBosses.register(modBus);
-
-        // Регистрация предикатов для Curios (валидация слотов колец и амулетов)
         CurioPredicates.register();
-
         LOGGER.info("Elemental Magic loaded");
     }
 }
