@@ -1,5 +1,6 @@
 package com.example.elementalmagic;
 
+import com.example.elementalmagic.entity.FireMageEntity;
 import com.example.elementalmagic.entity.ModEntities;
 import com.example.elementalmagic.magic.Element;
 import com.example.elementalmagic.magic.ElementalSwordItem;
@@ -14,6 +15,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.BlockItem;
@@ -62,6 +65,10 @@ public final class ModRegistry {
             DeferredRegister.create(Registries.FEATURE, MagicMod.MODID);
     private static final DeferredRegister<LootItemFunctionType<?>> LOOT_FUNCTIONS =
             DeferredRegister.create(Registries.LOOT_FUNCTION_TYPE, MagicMod.MODID);
+    
+    // Регистрация сущностей
+    private static final DeferredRegister<EntityType<?>> ENTITIES =
+            DeferredRegister.create(Registries.ENTITY_TYPE, MagicMod.MODID);
 
     public static final List<ArmorItem.Type> ARMOR_TYPES = List.of(
             ArmorItem.Type.HELMET, ArmorItem.Type.CHESTPLATE, ArmorItem.Type.LEGGINGS, ArmorItem.Type.BOOTS);
@@ -94,6 +101,13 @@ public final class ModRegistry {
     public static final DeferredItem<Item> MANA_ITEM =
             ITEMS.registerSimpleItem("mana", new Item.Properties().rarity(Rarity.UNCOMMON));
 
+    // --- НОВЫЕ ПРЕДМЕТЫ ---
+    public static final DeferredItem<Item> FIRE_MANA_PIECE = ITEMS.registerSimpleItem("fire_mana_piece",
+            new Item.Properties().rarity(Rarity.RARE));
+
+    public static final DeferredItem<Item> FIRE_ESSENCE = ITEMS.registerSimpleItem("fire_essence",
+            new Item.Properties().rarity(Rarity.EPIC));
+
     public static final DeferredHolder<MobEffect, MobEffect> MANA_RESTORE =
             EFFECTS.register("mana_restore", ManaRestoreEffect::new);
 
@@ -125,10 +139,18 @@ public final class ModRegistry {
     public static final Map<Element, DeferredItem<AccessoryItem>> RINGS = new EnumMap<>(Element.class);
     public static final Map<Element, List<DeferredItem<ScrollItem>>> SCROLLS = new EnumMap<>(Element.class);
 
-    /** Меч поглощения (особый предмет, не привязан к стихии). */
+    /** Меч поглощения. */
     public static final DeferredItem<AbsorptionSwordItem> ABSORPTION_SWORD =
             ITEMS.register("absorption_sword",
                     () -> new AbsorptionSwordItem(AbsorptionSwordItem.properties()));
+
+    /** Огненный маг. */
+    public static final DeferredHolder<EntityType<?>, EntityType<FireMageEntity>> FIRE_MAGE =
+            ENTITIES.register("fire_mage", () -> EntityType.Builder.<FireMageEntity>of(
+                    FireMageEntity::new, MobCategory.MONSTER)
+                    .sized(0.6f, 1.95f)
+                    .clientTrackingRange(8)
+                    .build("fire_mage"));
 
     static {
         for (Element e : Element.values()) {
@@ -206,7 +228,9 @@ public final class ModRegistry {
             .displayItems((params, out) -> {
                 out.accept(MAGIC_TABLE_ITEM.get());
                 out.accept(MANA_ITEM.get());
-                out.accept(ABSORPTION_SWORD.get()); // ← ЕДИНСТВЕННОЕ добавление меча
+                out.accept(FIRE_MANA_PIECE.get());
+                out.accept(FIRE_ESSENCE.get());
+                out.accept(ABSORPTION_SWORD.get());
                 for (Element e : Element.values()) {
                     out.accept(fullBook(e));
                     out.accept(STAVES.get(e).get());
@@ -228,6 +252,7 @@ public final class ModRegistry {
     public static void register(IEventBus bus) {
         BLOCKS.register(bus);
         ITEMS.register(bus);
+        ENTITIES.register(bus);
         ARMOR_MATERIALS.register(bus);
         COMPONENTS.register(bus);
         ATTACHMENTS.register(bus);
