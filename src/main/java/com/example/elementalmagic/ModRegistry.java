@@ -125,11 +125,6 @@ public final class ModRegistry {
     public static final Map<Element, DeferredItem<AccessoryItem>> RINGS = new EnumMap<>(Element.class);
     public static final Map<Element, List<DeferredItem<ScrollItem>>> SCROLLS = new EnumMap<>(Element.class);
 
-    /** Меч поглощения (особый предмет, не привязан к стихии). */
-    public static final DeferredItem<AbsorptionSwordItem> ABSORPTION_SWORD =
-            ITEMS.register("absorption_sword",
-                    () -> new AbsorptionSwordItem(AbsorptionSwordItem.properties()));
-
     static {
         for (Element e : Element.values()) {
             BOOKS.put(e, ITEMS.register(e.id + "_spellbook",
@@ -206,7 +201,7 @@ public final class ModRegistry {
             .displayItems((params, out) -> {
                 out.accept(MAGIC_TABLE_ITEM.get());
                 out.accept(MANA_ITEM.get());
-                out.accept(ABSORPTION_SWORD.get()); // ← вынесено за цикл, добавляется один раз
+                // Меч поглощения теперь добавляется в ModExtras
                 for (Element e : Element.values()) {
                     out.accept(fullBook(e));
                     out.accept(STAVES.get(e).get());
