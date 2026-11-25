@@ -69,8 +69,6 @@ public final class ModRegistry {
     public static final Supplier<AttachmentType<Integer>> MANA = ATTACHMENTS.register("mana",
             () -> AttachmentType.builder(() -> Mana.BASE_MAX).serialize(Codec.INT).copyOnDeath().build());
 
-    // УДАЛЕНЫ AMULET_SLOTS и RING_SLOTS — они больше не нужны, Curios управляет слотами
-
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> SPELL_INDEX =
             COMPONENTS.register("spell_index", () -> DataComponentType.<Integer>builder()
                     .persistent(Codec.INT).networkSynchronized(ByteBufCodecs.VAR_INT).build());
@@ -114,7 +112,6 @@ public final class ModRegistry {
     public static final DeferredItem<BlockItem> MAGIC_TABLE_ITEM =
             ITEMS.registerSimpleBlockItem("magic_table", MAGIC_TABLE);
 
-
     public static final Supplier<LootItemFunctionType<?>> RANDOM_SCROLL =
             LOOT_FUNCTIONS.register("random_scroll",
                     () -> new LootItemFunctionType<>(RandomScrollFunction.CODEC));
@@ -123,11 +120,15 @@ public final class ModRegistry {
     public static final Map<Element, DeferredHolder<ArmorMaterial, ArmorMaterial>> ARMOR_MATS = new EnumMap<>(Element.class);
     public static final Map<Element, Map<ArmorItem.Type, DeferredItem<ElementalArmorItem>>> ARMOR = new EnumMap<>(Element.class);
     public static final Map<Element, DeferredItem<StaffItem>> STAVES = new EnumMap<>(Element.class);
-    /** Магические мечи: есть не у всех стихий (см. ElementalSwordItem.HAS_SWORD). */
     public static final Map<Element, DeferredItem<ElementalSwordItem>> SWORDS = new EnumMap<>(Element.class);
     public static final Map<Element, DeferredItem<AccessoryItem>> AMULETS = new EnumMap<>(Element.class);
     public static final Map<Element, DeferredItem<AccessoryItem>> RINGS = new EnumMap<>(Element.class);
     public static final Map<Element, List<DeferredItem<ScrollItem>>> SCROLLS = new EnumMap<>(Element.class);
+
+    /** Меч поглощения (особый предмет, не привязан к стихии). */
+    public static final DeferredItem<AbsorptionSwordItem> ABSORPTION_SWORD =
+            ITEMS.register("absorption_sword",
+                    () -> new AbsorptionSwordItem(AbsorptionSwordItem.properties()));
 
     static {
         for (Element e : Element.values()) {
@@ -158,7 +159,6 @@ public final class ModRegistry {
                         () -> new ElementalSwordItem(e, ElementalSwordItem.properties(e))));
             }
 
-            // Амулеты и кольца теперь просто AccessoryItem, который реализует ICurioItem
             AMULETS.put(e, ITEMS.register(e.id + "_amulet",
                     () -> new AccessoryItem(e, AccessoryItem.Kind.AMULET,
                             new Item.Properties().stacksTo(1).rarity(Rarity.EPIC))));
@@ -206,6 +206,7 @@ public final class ModRegistry {
             .displayItems((params, out) -> {
                 out.accept(MAGIC_TABLE_ITEM.get());
                 out.accept(MANA_ITEM.get());
+                out.accept(ABSORPTION_SWORD.get()); // ← добавлен меч поглощения
                 for (Element e : Element.values()) {
                     out.accept(fullBook(e));
                     out.accept(STAVES.get(e).get());
