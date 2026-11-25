@@ -206,7 +206,7 @@ public final class ModRegistry {
             .displayItems((params, out) -> {
                 out.accept(MAGIC_TABLE_ITEM.get());
                 out.accept(MANA_ITEM.get());
-                out.accept(ABSORPTION_SWORD.get()); // ← добавлен меч поглощения
+                out.accept(ABSORPTION_SWORD.get()); // ← вынесено за цикл, добавляется один раз
                 for (Element e : Element.values()) {
                     out.accept(fullBook(e));
                     out.accept(STAVES.get(e).get());
