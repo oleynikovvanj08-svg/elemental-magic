@@ -5,8 +5,8 @@ import com.example.elementalmagic.magic.Element;
 import com.example.elementalmagic.magic.Spell;
 import com.example.elementalmagic.magic.Spells;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.DifficultyInstance;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.MobSpawnType;
@@ -36,7 +36,6 @@ public class FireWizardEntity extends ElementalMob {
 
         // Вшиваем заклинания огня в посох (чтобы моб мог их использовать)
         List<Spell> spells = Spells.byElement(Element.FIRE);
-        // Берём первые 10, если их больше
         List<String> ids = spells.stream().limit(10).map(Spell::id).toList();
         staff.set(ModRegistry.LEARNED_IDS.get(), ids);
 
@@ -44,21 +43,10 @@ public class FireWizardEntity extends ElementalMob {
     }
 
     @Override
-    protected void dropCustomDeathLoot(ServerLevel level, @Nullable Entity source, boolean recentlyHit) {
+    protected void dropCustomDeathLoot(ServerLevel level, DamageSource source, boolean recentlyHit) {
         super.dropCustomDeathLoot(level, source, recentlyHit);
 
-        // Огненная мана: 1-2 кусочка, при «Добывании» (looting) на оружии убийцы — ещё 0-2 сверху
-        int looting = 0;
-        if (source != null) {
-            ItemStack weapon = source.getWeaponItem();
-            if (!weapon.isEmpty()) {
-                looting = level.registryAccess()
-                        .lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT)
-                        .getOrThrow(net.minecraft.world.item.enchantment.Enchantments.LOOTING)
-                        .value().getMaxLevel();
-            }
-        }
-        // Проще и честнее: базовый дроп 1-2, лутинг добавляет до 2
+        // Огненная мана: базово 1-2 кусочка, если убил игрок — ещё 0-2 сверху
         int count = 1 + this.random.nextInt(2);
         if (recentlyHit) count += this.random.nextInt(2);
 
