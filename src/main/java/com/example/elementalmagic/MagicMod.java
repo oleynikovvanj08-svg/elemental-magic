@@ -1,6 +1,7 @@
 package com.example.elementalmagic;
 
 import com.example.elementalmagic.boss.ModBosses;
+import com.example.elementalmagic.entity.ModEntities;
 import com.example.elementalmagic.worldgen.ModStructures;
 import com.mojang.logging.LogUtils;
 import net.neoforged.bus.api.IEventBus;
