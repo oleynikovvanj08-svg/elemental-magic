@@ -14,6 +14,7 @@ public class MagicMod {
 
     public MagicMod(IEventBus modBus) {
         ModRegistry.register(modBus);
+        ModEntities.register(modBus);
         ModStructures.register(modBus);
         ModBosses.register(modBus);
         CurioPredicates.register();
