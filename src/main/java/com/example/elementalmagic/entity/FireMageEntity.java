@@ -3,7 +3,7 @@ package com.example.elementalmagic.entity;
 import com.example.elementalmagic.ModRegistry;
 import com.example.elementalmagic.magic.Element;
 import com.example.elementalmagic.magic.Spell;
-import com.example.elementalmagic.magic.SpellbookItem;
+import com.example.elementalmagic.magic.Spells;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -32,10 +32,9 @@ public class FireMageEntity extends ElementalMob {
         setItemSlot(EquipmentSlot.MAINHAND, staff);
         setDropChance(EquipmentSlot.MAINHAND, 1.0f); // 100% шанс дропа
 
-        // Вшиваем 10 заклинаний в посох (чтобы моб мог их использовать)
-        List<Spell> spells = SpellbookItem.allSpells(Element.FIRE);
-        // Здесь можно явно выбрать 10 заклинаний. Если их больше 10, берём первые 10.
-        // В идеале нужно записать их в компонент LEARNED_IDS посоха.
+        // Вшиваем заклинания огня в посох (чтобы моб мог их использовать)
+        List<Spell> spells = Spells.byElement(Element.FIRE);
+        // Берём первые 10, если их больше
         List<String> ids = spells.stream().limit(10).map(Spell::id).toList();
         staff.set(ModRegistry.LEARNED_IDS.get(), ids);
 
