@@ -1,6 +1,7 @@
 package com.example.elementalmagic.client;
 
 import com.example.elementalmagic.MagicMod;
+import com.example.elementalmagic.entity.ElementalMob;
 import com.example.elementalmagic.entity.ModEntities;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -18,8 +19,8 @@ public final class ClientMobRenderers {
             event.registerEntityRenderer(m.type().get(), ctx -> new ElementalMobRenderer(ctx, id, scale));
         }
 
-        // Огненный волшебник — используем модель и текстуру обычного огненного мага
-        float mageScale = ElementalMob.Kind.MAGE.scale;
+        // Огненный волшебник — модель и текстура обычного огненного мага, но чуть крупнее
+        float mageScale = ElementalMob.Kind.MAGE.scale * 1.2f;
         event.registerEntityRenderer(ModEntities.FIRE_WIZARD.get(),
                 ctx -> new ElementalMobRenderer(ctx, "fire_mage", mageScale));
     }
