@@ -12,7 +12,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.item.crafting.ShapedRecipePattern;
 import net.minecraft.world.item.crafting.ShapelessRecipe;
@@ -49,7 +48,11 @@ public final class ModRecipes {
         Item mana = ModRegistry.MANA_ITEM.get();
         CraftingBookCategory equip = CraftingBookCategory.EQUIPMENT;
 
-        // Свиток метеорита: 7 эссенций, бумага, огненный заряд
+        // Огненная эссенция: 9 кусочков огненной маны (3x3)
+        out.add(shaped("fire_essence", CraftingBookCategory.MISC, ModRegistry.FIRE_ESSENCE.get(),
+                Map.of('P', ModRegistry.FIRE_MANA_PIECE.get()), "PPP", "PPP", "PPP"));
+
+        // Свиток метеоритного дождя: 7 огненных эссенций, листок бумаги, огненный заряд
         var meteorScroll = ModRegistry.SCROLLS.get(Element.FIRE).stream()
                 .filter(s -> s.getId().getPath().equals("meteor_shower_scroll"))
                 .findFirst().orElse(null);
