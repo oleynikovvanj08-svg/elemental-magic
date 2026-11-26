@@ -5,6 +5,7 @@ import com.example.elementalmagic.entity.ModEntities;
 import com.example.elementalmagic.magic.Element;
 import com.example.elementalmagic.magic.Spell;
 import com.example.elementalmagic.magic.Spells;
+import com.example.elementalmagic.item.ScrollItem;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
@@ -110,22 +111,35 @@ public final class ModRecipes {
         return out;
     }
 
-    /** Ищет свиток метеоритного дождя: сначала по «meteor» в id предмета, потом по id заклинания. */
+    /**
+     * Ищет свиток метеоритного дождя.
+     * Заклинание регистрируется как "meteor_shower" (FireExtraSpells), свиток — как spell.id() + "_scroll".
+     * 1) Точное совпадение "meteor_shower_scroll" среди свитков огня.
+     * 2) Свиток заклинания по Spells.byId("meteor_shower") — на случай переименования id.
+     * 3) Фолбэк: любой свиток огня со словом "meteor".
+     */
     private static DeferredItem<ScrollItem> findMeteorScroll() {
-        List<DeferredItem<ScrollItem>> fireScrolls = ModRegistry.SCROLLS.get(Element.FIRE);
-
-        // 1. Любой свиток огня с «meteor» в id предмета
-        for (DeferredItem<ScrollItem> s : fireScrolls) {
-            if (s.getId().getPath().contains("meteor")) return s;
+        // 1. Точное имя свитка
+        for (DeferredItem<ScrollItem> s : ModRegistry.SCROLLS.get(Element.FIRE)) {
+            if (s.getId().getPath().equals("meteor_shower_scroll")) return s;
         }
 
-        // 2. Заклинание по типичным id — и его свиток (id предмета = id заклинания + "_scroll")
-        for (String sid : List.of("meteor_shower", "meteor_rain", "meteor", "fire_meteor_shower", "fire_meteor_rain")) {
-            Spell sp = Spells.byId(sid);
-            if (sp == null) continue;
-            for (DeferredItem<ScrollItem> s : ModRegistry.SCROLLS.get(sp.school().element)) {
-                if (s.getId().getPath().equals(sid + "_scroll")) return s;
+        // 2. Через заклинание: id свитка = id заклинания + "_scroll"
+        Spell spell = Spells.byId("meteor_shower");
+        if (spell != null) {
+            String expected = spell.id() + "_scroll";
+            for (DeferredItem<ScrollItem> s : ModRegistry.SCROLLS.get(spell.school().element)) {
+                if (s.getId().getPath().equals(expected)) return s;
             }
+            // Совпадение не нашлось — пробуем по school() напрямую (все свитки школы заклинания)
+            for (DeferredItem<ScrollItem> s : ModRegistry.SCROLLS.get(spell.school().element)) {
+                if (s.getId().getPath().contains("meteor")) return s;
+            }
+        }
+
+        // 3. Фолбэк по всем свиткам огня
+        for (DeferredItem<ScrollItem> s : ModRegistry.SCROLLS.get(Element.FIRE)) {
+            if (s.getId().getPath().contains("meteor")) return s;
         }
         return null;
     }
