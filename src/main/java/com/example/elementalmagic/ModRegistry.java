@@ -1,7 +1,5 @@
 package com.example.elementalmagic;
 
-import com.example.elementalmagic.entity.FireMageEntity;
-import com.example.elementalmagic.entity.ModEntities;
 import com.example.elementalmagic.magic.Element;
 import com.example.elementalmagic.magic.ElementalSwordItem;
 import com.example.elementalmagic.magic.Spell;
@@ -15,8 +13,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.BlockItem;
@@ -65,10 +61,6 @@ public final class ModRegistry {
             DeferredRegister.create(Registries.FEATURE, MagicMod.MODID);
     private static final DeferredRegister<LootItemFunctionType<?>> LOOT_FUNCTIONS =
             DeferredRegister.create(Registries.LOOT_FUNCTION_TYPE, MagicMod.MODID);
-    
-    // Регистрация сущностей
-    private static final DeferredRegister<EntityType<?>> ENTITIES =
-            DeferredRegister.create(Registries.ENTITY_TYPE, MagicMod.MODID);
 
     public static final List<ArmorItem.Type> ARMOR_TYPES = List.of(
             ArmorItem.Type.HELMET, ArmorItem.Type.CHESTPLATE, ArmorItem.Type.LEGGINGS, ArmorItem.Type.BOOTS);
@@ -143,14 +135,6 @@ public final class ModRegistry {
     public static final DeferredItem<AbsorptionSwordItem> ABSORPTION_SWORD =
             ITEMS.register("absorption_sword",
                     () -> new AbsorptionSwordItem(AbsorptionSwordItem.properties()));
-
-    /** Огненный маг. */
-    public static final DeferredHolder<EntityType<?>, EntityType<FireMageEntity>> FIRE_MAGE =
-            ENTITIES.register("fire_mage", () -> EntityType.Builder.<FireMageEntity>of(
-                    FireMageEntity::new, MobCategory.MONSTER)
-                    .sized(0.6f, 1.95f)
-                    .clientTrackingRange(8)
-                    .build("fire_mage"));
 
     static {
         for (Element e : Element.values()) {
@@ -252,7 +236,6 @@ public final class ModRegistry {
     public static void register(IEventBus bus) {
         BLOCKS.register(bus);
         ITEMS.register(bus);
-        ENTITIES.register(bus);
         ARMOR_MATERIALS.register(bus);
         COMPONENTS.register(bus);
         ATTACHMENTS.register(bus);
@@ -261,7 +244,6 @@ public final class ModRegistry {
         TABS.register(bus);
         FEATURES.register(bus);
         LOOT_FUNCTIONS.register(bus);
-        ModEntities.register(bus);
     }
 
     private ModRegistry() {}
