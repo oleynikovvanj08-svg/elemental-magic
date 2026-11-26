@@ -3,6 +3,9 @@ package com.example.elementalmagic;
 import com.example.elementalmagic.entity.ElementalMob;
 import com.example.elementalmagic.entity.ModEntities;
 import com.example.elementalmagic.magic.Element;
+import com.example.elementalmagic.magic.Spell;
+import com.example.elementalmagic.magic.Spells;
+import com.mojang.logging.LogUtils;
 import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ArmorItem;
@@ -20,6 +23,7 @@ import net.minecraft.world.level.ItemLike;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
+import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,6 +36,7 @@ import java.util.Map;
  */
 @EventBusSubscriber(modid = MagicMod.MODID)
 public final class ModRecipes {
+    private static final Logger LOGGER = LogUtils.getLogger();
     private static final ResourceLocation MARKER = id("magic_table");
 
     @SubscribeEvent
@@ -54,13 +59,14 @@ public final class ModRecipes {
                 Map.of('P', ModRegistry.FIRE_MANA_PIECE.get()), "PPP", "PPP", "PPP"));
 
         // Свиток метеоритного дождя: 7 огненных эссенций, листок бумаги, огненный заряд
-        var meteorScroll = ModRegistry.SCROLLS.get(Element.FIRE).stream()
-                .filter(s -> s.getId().getPath().equals("meteor_shower_scroll"))
-                .findFirst().orElse(null);
+        var meteorScroll = findMeteorScroll();
         if (meteorScroll != null) {
             out.add(shaped("meteor_shower_scroll", CraftingBookCategory.MISC, meteorScroll.get(),
                     Map.of('E', ModRegistry.FIRE_ESSENCE.get(), 'P', Items.PAPER, 'F', Items.FIRE_CHARGE),
                     "EEEEE", "EPEPE", "EEFEE"));
+        } else {
+            LOGGER.warn("[ElementalMagic] Свиток метеоритного дождя не найден. "
+                    + "Свитки огня: {}", fireScrollIds());
         }
 
         for (Element e : Element.values()) {
@@ -101,6 +107,34 @@ public final class ModRecipes {
                 CraftingBookCategory.MISC, new ItemStack(Items.EXPERIENCE_BOTTLE),
                 NonNullList.of(Ingredient.EMPTY, Ingredient.of(Items.GLASS_BOTTLE), m, m, m))));
         return out;
+    }
+
+    /** Ищет свиток метеоритного дождя: сначала по «meteor» в id предмета, потом по id заклинания. */
+    private static DeferredItem<ScrollItem> findMeteorScroll() {
+        List<DeferredItem<ScrollItem>> fireScrolls = ModRegistry.SCROLLS.get(Element.FIRE);
+
+        // 1. Любой свиток огня с «meteor» в id предмета
+        for (DeferredItem<ScrollItem> s : fireScrolls) {
+            if (s.getId().getPath().contains("meteor")) return s;
+        }
+
+        // 2. Заклинание по типичным id — и его свиток (id предмета = id заклинания + "_scroll")
+        for (String sid : List.of("meteor_shower", "meteor_rain", "meteor", "fire_meteor_shower", "fire_meteor_rain")) {
+            Spell sp = Spells.byId(sid);
+            if (sp == null) continue;
+            for (DeferredItem<ScrollItem> s : ModRegistry.SCROLLS.get(sp.school().element)) {
+                if (s.getId().getPath().equals(sid + "_scroll")) return s;
+            }
+        }
+        return null;
+    }
+
+    private static List<String> fireScrollIds() {
+        List<String> ids = new ArrayList<>();
+        for (DeferredItem<ScrollItem> s : ModRegistry.SCROLLS.get(Element.FIRE)) {
+            ids.add(s.getId().getPath());
+        }
+        return ids;
     }
 
     private static RecipeHolder<?> shaped(String name, CraftingBookCategory category, ItemLike result,
