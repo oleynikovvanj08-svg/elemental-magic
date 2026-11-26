@@ -43,34 +43,36 @@ public final class ModRecipes {
         all.addAll(build());
         manager.replaceRecipes(all);
     }
-// Огненная эссенция: 9 кусочков маны
-out.add(new RecipeHolder<>(id("fire_essence"), new ShapelessRecipe("",
-        CraftingBookCategory.MISC, new ItemStack(ModRegistry.FIRE_ESSENCE.get()),
-        NonNullList.of(Ingredient.EMPTY,
-                Ingredient.of(ModRegistry.FIRE_MANA_PIECE.get()),
-                Ingredient.of(ModRegistry.FIRE_MANA_PIECE.get()),
-                Ingredient.of(ModRegistry.FIRE_MANA_PIECE.get()),
-                Ingredient.of(ModRegistry.FIRE_MANA_PIECE.get()),
-                Ingredient.of(ModRegistry.FIRE_MANA_PIECE.get()),
-                Ingredient.of(ModRegistry.FIRE_MANA_PIECE.get()),
-                Ingredient.of(ModRegistry.FIRE_MANA_PIECE.get()),
-                Ingredient.of(ModRegistry.FIRE_MANA_PIECE.get()),
-                Ingredient.of(ModRegistry.FIRE_MANA_PIECE.get())
-        ))));
 
-// Свиток метеорита: 7 эссенций, бумага, огненный заряд
-var meteorScroll = ModRegistry.SCROLLS.get(Element.FIRE).stream()
-        .filter(s -> s.getId().getPath().equals("meteor_shower_scroll"))
-        .findFirst().orElse(null);
-if (meteorScroll != null) {
-    out.add(shaped("meteor_shower_scroll", CraftingBookCategory.MISC, meteorScroll.get(),
-            Map.of('E', ModRegistry.FIRE_ESSENCE.get(), 'P', Items.PAPER, 'F', Items.FIRE_CHARGE),
-            "EEEEE", "EPEPE", "EEFEE"));
-}
     private static List<RecipeHolder<?>> build() {
         List<RecipeHolder<?>> out = new ArrayList<>();
         Item mana = ModRegistry.MANA_ITEM.get();
         CraftingBookCategory equip = CraftingBookCategory.EQUIPMENT;
+
+        // Огненная эссенция: 9 кусочков маны
+        out.add(new RecipeHolder<>(id("fire_essence"), new ShapelessRecipe("",
+                CraftingBookCategory.MISC, new ItemStack(ModRegistry.FIRE_ESSENCE.get()),
+                NonNullList.of(Ingredient.EMPTY,
+                        Ingredient.of(ModRegistry.FIRE_MANA_PIECE.get()),
+                        Ingredient.of(ModRegistry.FIRE_MANA_PIECE.get()),
+                        Ingredient.of(ModRegistry.FIRE_MANA_PIECE.get()),
+                        Ingredient.of(ModRegistry.FIRE_MANA_PIECE.get()),
+                        Ingredient.of(ModRegistry.FIRE_MANA_PIECE.get()),
+                        Ingredient.of(ModRegistry.FIRE_MANA_PIECE.get()),
+                        Ingredient.of(ModRegistry.FIRE_MANA_PIECE.get()),
+                        Ingredient.of(ModRegistry.FIRE_MANA_PIECE.get()),
+                        Ingredient.of(ModRegistry.FIRE_MANA_PIECE.get())
+                ))));
+
+        // Свиток метеорита: 7 эссенций, бумага, огненный заряд
+        var meteorScroll = ModRegistry.SCROLLS.get(Element.FIRE).stream()
+                .filter(s -> s.getId().getPath().equals("meteor_shower_scroll"))
+                .findFirst().orElse(null);
+        if (meteorScroll != null) {
+            out.add(shaped("meteor_shower_scroll", CraftingBookCategory.MISC, meteorScroll.get(),
+                    Map.of('E', ModRegistry.FIRE_ESSENCE.get(), 'P', Items.PAPER, 'F', Items.FIRE_CHARGE),
+                    "EEEEE", "EPEPE", "EEFEE"));
+        }
 
         for (Element e : Element.values()) {
             Item s = ModEntities.material(e, ElementalMob.Kind.GOLEM); // осколок
