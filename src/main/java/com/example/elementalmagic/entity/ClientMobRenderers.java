@@ -17,6 +17,11 @@ public final class ClientMobRenderers {
             float scale = m.kind().scale;
             event.registerEntityRenderer(m.type().get(), ctx -> new ElementalMobRenderer(ctx, id, scale));
         }
+
+        // Огненный волшебник — используем модель и текстуру обычного огненного мага
+        float mageScale = ElementalMob.Kind.MAGE.scale;
+        event.registerEntityRenderer(ModEntities.FIRE_WIZARD.get(),
+                ctx -> new ElementalMobRenderer(ctx, "fire_mage", mageScale));
     }
 
     private ClientMobRenderers() {}
