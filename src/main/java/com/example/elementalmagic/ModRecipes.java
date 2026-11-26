@@ -5,7 +5,6 @@ import com.example.elementalmagic.entity.ModEntities;
 import com.example.elementalmagic.magic.Element;
 import com.example.elementalmagic.magic.Spell;
 import com.example.elementalmagic.magic.Spells;
-import com.example.elementalmagic.item.ScrollItem;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
@@ -24,7 +23,6 @@ import net.minecraft.world.level.ItemLike;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
-import net.neoforged.neoforge.registries.DeferredItem;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -61,9 +59,9 @@ public final class ModRecipes {
                 Map.of('P', ModRegistry.FIRE_MANA_PIECE.get()), "PPP", "PPP", "PPP"));
 
         // Свиток метеоритного дождя: 7 огненных эссенций, листок бумаги, огненный заряд
-        var meteorScroll = findMeteorScroll();
+        Item meteorScroll = findMeteorScroll();
         if (meteorScroll != null) {
-            out.add(shaped("meteor_shower_scroll", CraftingBookCategory.MISC, meteorScroll.get(),
+            out.add(shaped("meteor_shower_scroll", CraftingBookCategory.MISC, meteorScroll,
                     Map.of('E', ModRegistry.FIRE_ESSENCE.get(), 'P', Items.PAPER, 'F', Items.FIRE_CHARGE),
                     "EEEEE", "EPEPE", "EEFEE"));
         } else {
@@ -113,40 +111,39 @@ public final class ModRecipes {
 
     /**
      * Ищет свиток метеоритного дождя.
-     * Заклинание регистрируется как "meteor_shower" (FireExtraSpells), свиток — как spell.id() + "_scroll".
+     * Заклинание регистрируется как "meteor_shower" (FireExtraSpells), свиток — как id заклинания + "_scroll".
      * 1) Точное совпадение "meteor_shower_scroll" среди свитков огня.
      * 2) Свиток заклинания по Spells.byId("meteor_shower") — на случай переименования id.
      * 3) Фолбэк: любой свиток огня со словом "meteor".
      */
-    private static DeferredItem<ScrollItem> findMeteorScroll() {
+    private static Item findMeteorScroll() {
         // 1. Точное имя свитка
-        for (DeferredItem<ScrollItem> s : ModRegistry.SCROLLS.get(Element.FIRE)) {
-            if (s.getId().getPath().equals("meteor_shower_scroll")) return s;
+        for (var s : ModRegistry.SCROLLS.get(Element.FIRE)) {
+            if (s.getId().getPath().equals("meteor_shower_scroll")) return s.get();
         }
 
         // 2. Через заклинание: id свитка = id заклинания + "_scroll"
         Spell spell = Spells.byId("meteor_shower");
         if (spell != null) {
             String expected = spell.id() + "_scroll";
-            for (DeferredItem<ScrollItem> s : ModRegistry.SCROLLS.get(spell.school().element)) {
-                if (s.getId().getPath().equals(expected)) return s;
+            for (var s : ModRegistry.SCROLLS.get(spell.school().element)) {
+                if (s.getId().getPath().equals(expected)) return s.get();
             }
-            // Совпадение не нашлось — пробуем по school() напрямую (все свитки школы заклинания)
-            for (DeferredItem<ScrollItem> s : ModRegistry.SCROLLS.get(spell.school().element)) {
-                if (s.getId().getPath().contains("meteor")) return s;
+            for (var s : ModRegistry.SCROLLS.get(spell.school().element)) {
+                if (s.getId().getPath().contains("meteor")) return s.get();
             }
         }
 
         // 3. Фолбэк по всем свиткам огня
-        for (DeferredItem<ScrollItem> s : ModRegistry.SCROLLS.get(Element.FIRE)) {
-            if (s.getId().getPath().contains("meteor")) return s;
+        for (var s : ModRegistry.SCROLLS.get(Element.FIRE)) {
+            if (s.getId().getPath().contains("meteor")) return s.get();
         }
         return null;
     }
 
     private static List<String> fireScrollIds() {
         List<String> ids = new ArrayList<>();
-        for (DeferredItem<ScrollItem> s : ModRegistry.SCROLLS.get(Element.FIRE)) {
+        for (var s : ModRegistry.SCROLLS.get(Element.FIRE)) {
             ids.add(s.getId().getPath());
         }
         return ids;
