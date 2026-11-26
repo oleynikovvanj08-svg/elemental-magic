@@ -49,6 +49,19 @@ public final class ModEntities {
 
     public static final List<MobEntry> ALL = new ArrayList<>();
 
+    /** Отдельный огненный волшебник — уникальный моб, не из цикла стихий. */
+    public static final DeferredHolder<EntityType<?>, EntityType<FireWizardEntity>> FIRE_WIZARD =
+            ENTITIES.register("fire_wizard", () -> EntityType.Builder.of(
+                    FireWizardEntity::new, MobCategory.MONSTER)
+                    .sized(0.6f, 1.95f)
+                    .clientTrackingRange(8)
+                    .build("fire_wizard"));
+
+    /** Яйцо призыва для огненного волшебника. */
+    public static final DeferredItem<DeferredSpawnEggItem> FIRE_WIZARD_EGG =
+            ITEMS.register("fire_wizard_spawn_egg", () -> new DeferredSpawnEggItem(
+                    FIRE_WIZARD, 0xE25822, 0xFFD700, new Item.Properties()));
+
     private static final Map<String, String> ADJ = Map.ofEntries(
             Map.entry("lightning", "Грозовой"), Map.entry("light", "Сияющий"),
             Map.entry("darkness", "Тёмный"), Map.entry("water", "Водный"),
@@ -120,6 +133,9 @@ public final class ModEntities {
         for (MobEntry m : ALL) {
             event.put(m.type().get(), ElementalMob.createAttributes(m.element(), m.kind()).build());
         }
+        // Атрибуты для отдельного огненного волшебника
+        event.put(FIRE_WIZARD.get(),
+                ElementalMob.createAttributes(Element.FIRE, ElementalMob.Kind.MAGE).build());
     }
 
     @SubscribeEvent
@@ -129,6 +145,9 @@ public final class ModEntities {
                     Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Monster::checkMonsterSpawnRules,
                     RegisterSpawnPlacementsEvent.Operation.REPLACE);
         }
+        event.register(FIRE_WIZARD.get(), SpawnPlacementTypes.ON_GROUND,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Monster::checkMonsterSpawnRules,
+                RegisterSpawnPlacementsEvent.Operation.REPLACE);
     }
 
     public static void register(IEventBus bus) {
