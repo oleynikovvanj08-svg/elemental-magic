@@ -16,9 +16,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class FireMageEntity extends ElementalMob {
+public class FireWizardEntity extends ElementalMob {
 
-    public FireMageEntity(EntityType<? extends ElementalMob> type, Level level) {
+    public FireWizardEntity(EntityType<? extends ElementalMob> type, Level level) {
         super(type, level, Element.FIRE, ElementalMob.Kind.MAGE);
     }
 
