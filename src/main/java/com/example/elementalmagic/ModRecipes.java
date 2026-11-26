@@ -58,12 +58,12 @@ public final class ModRecipes {
         out.add(shaped("fire_essence", CraftingBookCategory.MISC, ModRegistry.FIRE_ESSENCE.get(),
                 Map.of('P', ModRegistry.FIRE_MANA_PIECE.get()), "PPP", "PPP", "PPP"));
 
-        // Свиток метеоритного дождя: 7 огненных эссенций, листок бумаги, огненный заряд
+        // Свиток метеоритного дождя: 7 огненных эссенций, бумага, огненный заряд (влезает в 3x3)
         Item meteorScroll = findMeteorScroll();
         if (meteorScroll != null) {
             out.add(shaped("meteor_shower_scroll", CraftingBookCategory.MISC, meteorScroll,
                     Map.of('E', ModRegistry.FIRE_ESSENCE.get(), 'P', Items.PAPER, 'F', Items.FIRE_CHARGE),
-                    "EEEEE", "EPEPE", "EEFEE"));
+                    "EEE", "EPE", "EFE"));
         } else {
             LOGGER.warn("[ElementalMagic] Свиток метеоритного дождя не найден. "
                     + "Свитки огня: {}", fireScrollIds());
